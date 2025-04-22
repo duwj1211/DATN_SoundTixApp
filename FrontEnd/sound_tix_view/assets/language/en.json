@@ -1,0 +1,7 @@
+{
+  "totalMoneyMessage": "{totalMoney}.000 đ | Continue",
+  "noTicketMessage": "Please select ticket",
+  "Only from price": "Only from {price}.000 VNĐ",
+  "Order #number": "Order #{orderNumber}",
+  "Total: totalPrice": "Total: {totalPrice}.000 VNĐ"
+}
