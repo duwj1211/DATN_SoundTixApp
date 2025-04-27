@@ -2,7 +2,6 @@ package com.example.SoundTix.service;
 
 import com.example.SoundTix.dao.UserSearch;
 import com.example.SoundTix.model.Booking;
-import com.example.SoundTix.model.Feedback;
 import com.example.SoundTix.model.User;
 import com.example.SoundTix.repository.UserRepository;
 import jakarta.persistence.criteria.*;
@@ -44,10 +43,6 @@ public class UserServiceImpl implements UserService{
                 }
                 if(!ObjectUtils.isEmpty(userSearch.getStatus())){
                     predicates.add(criteriaBuilder.equal(root.get("status"), userSearch.getStatus()));
-                }
-                if (!ObjectUtils.isEmpty(userSearch.getFeedbackId())) {
-                    Join<User, Feedback> feedbackJoin = root.join("feedbacks");
-                    predicates.add(criteriaBuilder.equal(feedbackJoin.get("feedbackId"), userSearch.getFeedbackId()));
                 }
                 if (!ObjectUtils.isEmpty(userSearch.getBookingId())) {
                     Join<User, Booking> bookingJoin = root.join("bookings");
@@ -157,10 +152,6 @@ public class UserServiceImpl implements UserService{
                 }
                 if(!ObjectUtils.isEmpty(userSearch.getStatus())){
                     predicates.add(criteriaBuilder.equal(root.get("status"), userSearch.getStatus()));
-                }
-                if (!ObjectUtils.isEmpty(userSearch.getFeedbackId())) {
-                    Join<User, Feedback> feedbackJoin = root.join("feedbacks");
-                    predicates.add(criteriaBuilder.equal(feedbackJoin.get("feedbackId"), userSearch.getFeedbackId()));
                 }
                 if (!ObjectUtils.isEmpty(userSearch.getBookingId())) {
                     Join<User, Booking> bookingJoin = root.join("bookings");

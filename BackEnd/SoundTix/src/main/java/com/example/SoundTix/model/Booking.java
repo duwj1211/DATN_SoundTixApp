@@ -13,6 +13,7 @@ public class Booking {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Integer bookingId;
+    private Integer quantity;
     private Integer totalPrice;
     private String bookingStatus;
     @Temporal(TemporalType.TIMESTAMP)
@@ -47,6 +48,14 @@ public class Booking {
 
     public void setBookingId(Integer bookingId) {
         this.bookingId = bookingId;
+    }
+
+    public Integer getQuantity() {
+        return quantity;
+    }
+
+    public void setQuantity(Integer quantity) {
+        this.quantity = quantity;
     }
 
     public Integer getTotalPrice() {

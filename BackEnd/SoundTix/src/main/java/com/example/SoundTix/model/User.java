@@ -42,13 +42,6 @@ public class User {
     @JsonIgnoreProperties("user")
     private Set<Booking> bookings = new HashSet<>();
 
-    @OneToMany(mappedBy = "user")
-    @JsonIgnoreProperties("user")
-    private Set<InterestedEvent> interestedEvents;
-    @OneToMany(mappedBy = "user", cascade = CascadeType.ALL)
-    @JsonIgnoreProperties("user")
-    private Set<Feedback> feedbacks = new HashSet<>();
-
     public Integer getUserId() {
         return userId;
     }
@@ -167,21 +160,5 @@ public class User {
 
     public void setBookings(Set<Booking> bookings) {
         this.bookings = bookings;
-    }
-
-    public Set<InterestedEvent> getInterestedEvents() {
-        return interestedEvents;
-    }
-
-    public void setInterestedEvents(Set<InterestedEvent> interestedEvents) {
-        this.interestedEvents = interestedEvents;
-    }
-
-    public Set<Feedback> getFeedbacks() {
-        return feedbacks;
-    }
-
-    public void setFeedbacks(Set<Feedback> feedbacks) {
-        this.feedbacks = feedbacks;
     }
 }

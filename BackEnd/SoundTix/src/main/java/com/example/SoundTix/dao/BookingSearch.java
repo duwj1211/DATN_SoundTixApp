@@ -1,7 +1,7 @@
 package com.example.SoundTix.dao;
 
 public class BookingSearch {
-    private String user;
+    private int userId;
     private String ticket;
     private Integer paymentId;
     private Integer startTotalPrice;
@@ -10,12 +10,12 @@ public class BookingSearch {
     private String paymentMethod;
     private boolean sortByCreateAtAsc;
 
-    public String getUser() {
-        return user;
+    public int getUserId() {
+        return userId;
     }
 
-    public void setUser(String user) {
-        this.user = user;
+    public void setUserId(int userId) {
+        this.userId = userId;
     }
 
     public String getTicket() {

@@ -20,6 +20,9 @@ public class Event {
     @Column(columnDefinition = "TEXT")
     private String description;
     private String path;
+    private String organizer;
+    private String organizerDescription;
+    private String organizerAvatar;
 
     @ManyToOne
     @JoinColumn(name = "eventTypeId")
@@ -38,14 +41,6 @@ public class Event {
     @OneToMany(mappedBy = "event", cascade = CascadeType.ALL)
     @JsonIgnoreProperties("event")
     private Set<Ticket> tickets = new HashSet<>();
-
-    @OneToMany(mappedBy = "event", cascade = CascadeType.ALL)
-    @JsonIgnoreProperties("event")
-    private Set<Feedback> feedbacks = new HashSet<>();
-
-    @JsonIgnoreProperties("events")
-    @ManyToMany(mappedBy = "events")
-    private List<InterestedEvent> interestedEvents;
 
     public Integer getEventId() {
         return eventId;
@@ -95,6 +90,30 @@ public class Event {
         this.path = path;
     }
 
+    public String getOrganizer() {
+        return organizer;
+    }
+
+    public void setOrganizer(String organizer) {
+        this.organizer = organizer;
+    }
+
+    public String getOrganizerDescription() {
+        return organizerDescription;
+    }
+
+    public void setOrganizerDescription(String organizerDescription) {
+        this.organizerDescription = organizerDescription;
+    }
+
+    public String getOrganizerAvatar() {
+        return organizerAvatar;
+    }
+
+    public void setOrganizerAvatar(String organizerAvatar) {
+        this.organizerAvatar = organizerAvatar;
+    }
+
     public EventType getEventType() {
         return eventType;
     }
@@ -117,22 +136,6 @@ public class Event {
 
     public void setTickets(Set<Ticket> tickets) {
         this.tickets = tickets;
-    }
-
-    public Set<Feedback> getFeedbacks() {
-        return feedbacks;
-    }
-
-    public void setFeedbacks(Set<Feedback> feedbacks) {
-        this.feedbacks = feedbacks;
-    }
-
-    public List<InterestedEvent> getInterestedEvents() {
-        return interestedEvents;
-    }
-
-    public void setInterestedEvents(List<InterestedEvent> interestedEvents) {
-        this.interestedEvents = interestedEvents;
     }
 }
 

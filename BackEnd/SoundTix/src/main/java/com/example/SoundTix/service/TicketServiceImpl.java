@@ -93,6 +93,9 @@ public class TicketServiceImpl implements TicketService{
             if (ticketDetails.getDetailInformation() != null) {
                 existingTicket.setDetailInformation(ticketDetails.getDetailInformation());
             }
+            if (ticketDetails.getQrCode() != null) {
+                existingTicket.setQrCode(ticketDetails.getQrCode());
+            }
 
             return ticketRepository.save(existingTicket);
         }
