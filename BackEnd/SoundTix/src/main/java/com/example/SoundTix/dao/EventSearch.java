@@ -10,7 +10,7 @@ public class EventSearch {
     private String eventType;
     private String artist;
     private String ticket;
-    private Integer interestedId;
+    private String organizer;
     private boolean sortByDateTimeAsc;
 
     public String getName() {
@@ -69,12 +69,12 @@ public class EventSearch {
         this.ticket = ticket;
     }
 
-    public Integer getInterestedId() {
-        return interestedId;
+    public String getOrganizer() {
+        return organizer;
     }
 
-    public void setInterestedId(Integer interestedId) {
-        this.interestedId = interestedId;
+    public void setOrganizer(String organizer) {
+        this.organizer = organizer;
     }
 
     public boolean isSortByDateTimeAsc() {

@@ -3,6 +3,7 @@ package com.example.SoundTix.service;
 import com.example.SoundTix.dao.BookingSearch;
 import com.example.SoundTix.model.*;
 import com.example.SoundTix.repository.BookingRepository;
+import com.example.SoundTix.repository.PaymentRepository;
 import com.example.SoundTix.repository.TicketRepository;
 import jakarta.persistence.criteria.*;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -21,6 +22,9 @@ public class BookingServiceImpl implements BookingService{
     @Autowired
     TicketRepository ticketRepository;
 
+    @Autowired
+    PaymentRepository paymentRepository;
+
     @Override
     public Booking addBooking(Booking booking) {
         Set<Ticket> managedTickets = new HashSet<>();
@@ -31,6 +35,14 @@ public class BookingServiceImpl implements BookingService{
             managedTickets.add(managedTicket);
         }
         booking.setTickets(managedTickets);
+        if (booking.getPayment() != null && booking.getPayment().getPaymentId() != null) {
+            Integer paymentId = booking.getPayment().getPaymentId();
+            Payment payment = paymentRepository.findById(paymentId)
+                    .orElseThrow(() -> new RuntimeException("Payment not found with ID: " + paymentId));
+
+            booking.setPayment(payment);
+            payment.setBooking(booking);
+        }
         return bookingRepository.save(booking);
     }
 
@@ -42,9 +54,9 @@ public class BookingServiceImpl implements BookingService{
             @Override
             public jakarta.persistence.criteria.Predicate toPredicate(Root<Booking> root, CriteriaQuery<?> query, CriteriaBuilder criteriaBuilder) {
                 List<Predicate> predicates = new ArrayList<>();
-                if (!ObjectUtils.isEmpty(bookingSearch.getUser())) {
+                if (!ObjectUtils.isEmpty(bookingSearch.getUserId())) {
                     Join<Booking, User> userJoin = root.join("user");
-                    predicates.add(criteriaBuilder.like(userJoin.get("fullName"), "%" + bookingSearch.getUser()+ "%"));
+                    predicates.add(criteriaBuilder.equal(userJoin.get("userId"),  bookingSearch.getUserId()));
                 }
                 if (!ObjectUtils.isEmpty(bookingSearch.getTicket())) {
                     Join<Booking, Ticket> ticketJoin = root.join("tickets");
@@ -92,6 +104,9 @@ public class BookingServiceImpl implements BookingService{
         Optional<Booking> booking = bookingRepository.findById(bookingId);
         if (booking.isPresent()) {
             Booking existingBooking = booking.get();
+            if (bookingDetails.getQuantity() != null) {
+                existingBooking.setQuantity(bookingDetails.getQuantity());
+            }
             if (bookingDetails.getTotalPrice() != null) {
                 existingBooking.setTotalPrice(bookingDetails.getTotalPrice());
             }
@@ -119,9 +134,9 @@ public class BookingServiceImpl implements BookingService{
             @Override
             public Predicate toPredicate(Root<Booking> root, CriteriaQuery<?> query, CriteriaBuilder criteriaBuilder) {
                 List<Predicate> predicates = new ArrayList<>();
-                if (!ObjectUtils.isEmpty(bookingSearch.getUser())) {
+                if (!ObjectUtils.isEmpty(bookingSearch.getUserId())) {
                     Join<Booking, User> userJoin = root.join("user");
-                    predicates.add(criteriaBuilder.like(userJoin.get("fullName"), "%" + bookingSearch.getUser()+ "%"));
+                    predicates.add(criteriaBuilder.equal(userJoin.get("userId"), bookingSearch.getUserId()));
                 }
                 if (!ObjectUtils.isEmpty(bookingSearch.getTicket())) {
                     Join<Booking, Ticket> ticketJoin = root.join("tickets");

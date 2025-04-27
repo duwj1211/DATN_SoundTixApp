@@ -15,6 +15,7 @@ public class Ticket {
     private Integer sold;
     @Column(columnDefinition = "TEXT")
     private String detailInformation;
+    private String qrCode;
 
     @ManyToOne
     @JoinColumn(name = "bookingId")
@@ -72,6 +73,14 @@ public class Ticket {
 
     public void setDetailInformation(String detailInformation) {
         this.detailInformation = detailInformation;
+    }
+
+    public String getQrCode() {
+        return qrCode;
+    }
+
+    public void setQrCode(String qrCode) {
+        this.qrCode = qrCode;
     }
 
     public Booking getBooking() {

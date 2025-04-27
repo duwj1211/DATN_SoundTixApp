@@ -4,7 +4,6 @@ import com.example.SoundTix.dao.EventSearch;
 import com.example.SoundTix.model.*;
 import com.example.SoundTix.repository.ArtistRepository;
 import com.example.SoundTix.repository.EventRepository;
-import com.example.SoundTix.repository.FeedbackRepository;
 import com.example.SoundTix.repository.TicketRepository;
 import jakarta.persistence.criteria.*;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -26,9 +25,6 @@ public class EventServiceImpl implements EventService{
 
     @Autowired
     TicketRepository ticketRepository;
-
-    @Autowired
-    FeedbackRepository feedbackRepository;
 
     @Override
     public Event addEvent(Event event) {
@@ -70,9 +66,8 @@ public class EventServiceImpl implements EventService{
                     Join<Event, Ticket> ticketJoin = root.join("tickets");
                     predicates.add(criteriaBuilder.equal(ticketJoin.get("name"), eventSearch.getTicket()));
                 }
-                if (!ObjectUtils.isEmpty(eventSearch.getInterestedId())) {
-                    Join<Event, InterestedEvent> interestedEventJoin = root.join("interestedEvents");
-                    predicates.add(criteriaBuilder.equal(interestedEventJoin.get("interestedId"), eventSearch.getInterestedId()));
+                if(!ObjectUtils.isEmpty(eventSearch.getOrganizer())){
+                    predicates.add(criteriaBuilder.equal(root.get("organizer"),  eventSearch.getOrganizer()));
                 }
                 if (eventSearch.isSortByDateTimeAsc()) {
                     query.orderBy(criteriaBuilder.asc(root.get("dateTime")));
@@ -108,6 +103,15 @@ public class EventServiceImpl implements EventService{
             if (eventDetails.getPath() != null) {
                 existingEvent.setPath(eventDetails.getPath());
             }
+            if (eventDetails.getOrganizer() != null) {
+                existingEvent.setOrganizer(eventDetails.getOrganizer());
+            }
+            if (eventDetails.getOrganizerDescription() != null) {
+                existingEvent.setOrganizerDescription(eventDetails.getOrganizerDescription());
+            }
+            if (eventDetails.getOrganizerAvatar() != null) {
+                existingEvent.setOrganizerAvatar(eventDetails.getOrganizerAvatar());
+            }
             if (eventDetails.getArtists() != null) {
                 List<Artist> updatedArtists = new ArrayList<>();
                 for (Artist artistDetail : eventDetails.getArtists()) {
@@ -123,14 +127,6 @@ public class EventServiceImpl implements EventService{
                     ticket.ifPresent(updatedTickets::add);
                 }
                 existingEvent.setTickets(updatedTickets);
-            }
-            if (eventDetails.getFeedbacks() != null) {
-                Set<Feedback> updatedFeedbacks = new HashSet<>();
-                for (Feedback feedbackDetail : eventDetails.getFeedbacks()) {
-                    Optional<Feedback> feedback = feedbackRepository.findById(feedbackDetail.getFeedbackId());
-                    feedback.ifPresent(updatedFeedbacks::add);
-                }
-                existingEvent.setFeedbacks(updatedFeedbacks);
             }
             if (eventDetails.getEventType() != null) {
                 existingEvent.setEventType(eventDetails.getEventType());
@@ -187,9 +183,8 @@ public class EventServiceImpl implements EventService{
                     Join<Event, Ticket> ticketJoin = root.join("tickets");
                     predicates.add(criteriaBuilder.equal(ticketJoin.get("name"), eventSearch.getTicket()));
                 }
-                if (!ObjectUtils.isEmpty(eventSearch.getInterestedId())) {
-                    Join<Event, InterestedEvent> interestedEventJoin = root.join("interestedEvents");
-                    predicates.add(criteriaBuilder.equal(interestedEventJoin.get("interestedId"), eventSearch.getInterestedId()));
+                if(!ObjectUtils.isEmpty(eventSearch.getOrganizer())){
+                    predicates.add(criteriaBuilder.equal(root.get("organizer"),  eventSearch.getOrganizer()));
                 }
                 if (eventSearch.isSortByDateTimeAsc()) {
                     query.orderBy(criteriaBuilder.asc(root.get("dateTime")));
