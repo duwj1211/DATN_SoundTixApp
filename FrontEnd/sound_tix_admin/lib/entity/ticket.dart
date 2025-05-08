@@ -7,6 +7,7 @@ class Ticket {
   int quantityAvailable;
   int sold;
   String detailInformation;
+  String qrCode;
 
   Ticket({
     this.ticketId,
@@ -15,6 +16,7 @@ class Ticket {
     required this.quantityAvailable,
     required this.sold,
     required this.detailInformation,
+    required this.qrCode,
   });
 
   Ticket copyWith({
@@ -24,6 +26,7 @@ class Ticket {
     int? quantityAvailable,
     int? sold,
     String? detailInformation,
+    String? qrCode,
   }) {
     return Ticket(
       ticketId: ticketId ?? this.ticketId,
@@ -32,6 +35,7 @@ class Ticket {
       quantityAvailable: quantityAvailable ?? this.quantityAvailable,
       sold: sold ?? this.sold,
       detailInformation: detailInformation ?? this.detailInformation,
+      qrCode: qrCode ?? this.qrCode,
     );
   }
 
@@ -43,6 +47,7 @@ class Ticket {
       'quantityAvailable': quantityAvailable,
       'sold': sold,
       'detailInformation': detailInformation,
+      'qrCode': qrCode,
     };
   }
 
@@ -54,6 +59,7 @@ class Ticket {
       quantityAvailable: map['quantityAvailable'] as int,
       sold: map['sold'] as int,
       detailInformation: map['detailInformation'] as String,
+      qrCode: map['qrCode'] as String,
     );
   }
 
@@ -63,7 +69,7 @@ class Ticket {
 
   @override
   String toString() {
-    return 'Ticket(ticketId: $ticketId, name: $name, price: $price, quantityAvailable: $quantityAvailable, sold: $sold, detailInformation: $detailInformation)';
+    return 'Ticket(ticketId: $ticketId, name: $name, price: $price, quantityAvailable: $quantityAvailable, sold: $sold, detailInformation: $detailInformation, qrCode: $qrCode)';
   }
 
   @override
@@ -75,11 +81,18 @@ class Ticket {
         other.price == price &&
         other.quantityAvailable == quantityAvailable &&
         other.sold == sold &&
-        other.detailInformation == detailInformation;
+        other.detailInformation == detailInformation &&
+        other.qrCode == qrCode;
   }
 
   @override
   int get hashCode {
-    return ticketId.hashCode ^ name.hashCode ^ price.hashCode ^ quantityAvailable.hashCode ^ sold.hashCode ^ detailInformation.hashCode;
+    return ticketId.hashCode ^
+        name.hashCode ^
+        price.hashCode ^
+        quantityAvailable.hashCode ^
+        sold.hashCode ^
+        detailInformation.hashCode ^
+        qrCode.hashCode;
   }
 }

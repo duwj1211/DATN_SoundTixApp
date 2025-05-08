@@ -74,11 +74,13 @@ class _LoginPageState extends State<LoginPage> {
                         Stack(
                           children: [
                             InputCustom(
-                                controller: _passwordController,
-                                label: Text(AppLocalizations.of(context).translate("Password")),
-                                prefixIcon: const Icon(Icons.lock_outlined),
-                                hintText: AppLocalizations.of(context).translate("Enter your password"),
-                                obscureText: isShow),
+                              controller: _passwordController,
+                              label: Text(AppLocalizations.of(context).translate("Password")),
+                              prefixIcon: const Icon(Icons.lock_outlined),
+                              hintText: AppLocalizations.of(context).translate("Enter your password"),
+                              obscureText: isShow,
+                              maxLines: 1,
+                            ),
                             Positioned(
                               top: 15,
                               right: 15,
@@ -125,11 +127,17 @@ class _LoginPageState extends State<LoginPage> {
                             focusColor: Colors.transparent,
                             splashColor: Colors.transparent,
                             onTap: () {
-                              if (_usernameController.text != "Customer") {
+                              if (_usernameController.text == "Organizer") {
                                 context.go('/organizer-center');
                               } else {
                                 context.go('/home-page');
                               }
+                              ScaffoldMessenger.of(context).showSnackBar(
+                                const SnackBar(
+                                  content: Text('Đăng nhập thành công.'),
+                                  duration: Duration(seconds: 1),
+                                ),
+                              );
                             },
                             child: Container(
                               alignment: Alignment.center,

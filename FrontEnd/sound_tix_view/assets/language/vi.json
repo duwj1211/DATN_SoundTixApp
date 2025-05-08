@@ -39,7 +39,7 @@
   "Skip": "Bỏ qua",
   "Next": "Tiếp",
   "Home": "Trang chủ",
-  "My Order": "Đơn hàng của tôi",
+  "My Ticket": "Vé của tôi",
   "Profile": "Hồ sơ",
   "ALL": "TẤT CẢ",
   "Featured Events": "Sự kiện nổi bật",
@@ -48,7 +48,7 @@
   "You are not interested in any tickets!": "Bạn chưa quan tâm vé nào cả!",
   "Order #number": "Đơn hàng #{orderNumber}",
   "Total: totalPrice": "Tổng: {totalPrice}.000 VNĐ",
-  "My orders": "Đơn hàng của tôi",
+  "My ticket": "Vé của tôi",
   "You do not have any tickets yet!": "Bạn chưa có vé nào cả!",
   "Buy tickets now": "Mua vé ngay",
   "Billing successfully": "Xuất hóa đơn thành công",
@@ -222,5 +222,9 @@
   "Ho Chi Minh": "Hồ Chí Minh",
   "Da Nang": "Đà Nẵng",
   "Others": "Các địa điểm khác",
-  "Filters": "Lọc"
+  "Filters": "Lọc",
+  "I do not want to continue using SoundTix": "Tôi không muốn tiếp tục sử dụng SoundTix",
+  "Bad service": "Dịch vụ tệ",
+  "Other reason": "Lý do khác",
+  "Export e-ticket": "Xuất vé điện tử"
 }

@@ -24,6 +24,7 @@ class _BookPageState extends State<BookPage> {
   List<Ticket> tickets = [];
   bool _isLoading = true;
   int bookQuantity = 0;
+  int selectedTicketId = 0;
 
   @override
   void initState() {
@@ -146,9 +147,16 @@ class _BookPageState extends State<BookPage> {
                                     ),
                                     for (Ticket ticket in tickets)
                                       TicketWidget(
+                                          ticketId: ticket.ticketId!,
                                           ticketName: ticket.name,
                                           price: ticket.price,
                                           quantityAvailable: ticket.quantityAvailable,
+                                          selectedTicketId: selectedTicketId,
+                                          callbackSelectedTicketId: (newSelectedTicketId) {
+                                            setState(() {
+                                              selectedTicketId = newSelectedTicketId;
+                                            });
+                                          },
                                           callbackQuantityAndMoney: (newQuantity, newMoney) {
                                             setState(() {
                                               bookQuantity = newQuantity;
@@ -235,7 +243,9 @@ class _BookPageState extends State<BookPage> {
                           children: [
                             Text(
                               (totalMoney != 0)
-                                  ? AppLocalizations.of(context).translate("totalMoneyMessage").replaceAll("{totalMoney}", totalMoney.toString())
+                                  ? AppLocalizations.of(context)
+                                      .translate("totalMoneyMessage")
+                                      .replaceAll("{totalMoney}", NumberFormat('#,###', 'vi_VN').format(totalMoney))
                                   : AppLocalizations.of(context).translate("noTicketMessage"),
                               style: TextStyle(
                                 color: (totalMoney != 0) ? Colors.white : Colors.grey,

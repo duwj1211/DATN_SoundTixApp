@@ -20,7 +20,6 @@ class _ChangePasswordWidgetState extends State<ChangePasswordWidget> {
   final TextEditingController _newPasswordController = TextEditingController();
   final TextEditingController _confirmNewPasswordController = TextEditingController();
   User? user;
-  int userId = 1;
   bool _isLoadingEdit = true;
   bool _isIncorrectPassword = false;
   bool _isNotMatchPassword = false;
@@ -30,7 +29,7 @@ class _ChangePasswordWidgetState extends State<ChangePasswordWidget> {
 
   @override
   void initState() {
-    getDetailUser(userId);
+    getDetailUser(widget.userId);
     super.initState();
   }
 
@@ -44,8 +43,9 @@ class _ChangePasswordWidgetState extends State<ChangePasswordWidget> {
 
   updateUser() async {
     dynamic userData = {
-      "password": _newPasswordController.text,
+      "passWord": _newPasswordController.text,
     };
+    print(userData);
 
     var response = await httpPatch("http://localhost:8080/user/update/${user!.userId}", userData);
     if (response['statusCode'] == 200) {

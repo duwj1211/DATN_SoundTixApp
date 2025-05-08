@@ -7,10 +7,10 @@ import 'package:provider/provider.dart';
 import 'package:sound_tix_view/api.dart';
 import 'package:sound_tix_view/components/app_localizations.dart';
 import 'package:sound_tix_view/components/close_button.dart';
-import 'package:sound_tix_view/entity/artist.dart';
+import 'package:sound_tix_view/components/func.dart';
 import 'package:sound_tix_view/entity/event.dart';
-import 'package:sound_tix_view/entity/event_type.dart';
 import 'package:sound_tix_view/model/model.dart';
+import 'package:sound_tix_view/page/home_page/home/filter_widget.dart';
 
 class SearchPageWidget extends StatefulWidget {
   const SearchPageWidget({super.key});
@@ -29,8 +29,6 @@ class _SearchPageWidgetState extends State<SearchPageWidget> {
   String _selectedEventTypeFilter = '';
   String _selectedArtistFilter = '';
   Timer? _debounceTimer;
-  List<EventType> eventTypes = [];
-  List<Artist> artists = [];
 
   @override
   void initState() {
@@ -40,8 +38,6 @@ class _SearchPageWidgetState extends State<SearchPageWidget> {
 
   getInitPage() async {
     await search();
-    await getListEventTypes();
-    await getListArtists();
     return 0;
   }
 
@@ -64,30 +60,6 @@ class _SearchPageWidgetState extends State<SearchPageWidget> {
       for (var element in rawData["body"]["content"]) {
         var event = Event.fromMap(element);
         events.add(event);
-      }
-    });
-    return 0;
-  }
-
-  getListEventTypes() async {
-    var rawData = await httpPost("http://localhost:8080/event-type/search", {});
-    setState(() {
-      eventTypes = [];
-      for (var element in rawData["body"]["content"]) {
-        var eventType = EventType.fromMap(element);
-        eventTypes.add(eventType);
-      }
-    });
-    return 0;
-  }
-
-  getListArtists() async {
-    var rawData = await httpPost("http://localhost:8080/artist/search", {});
-    setState(() {
-      artists = [];
-      for (var element in rawData["body"]["content"]) {
-        var artist = Artist.fromMap(element);
-        artists.add(artist);
       }
     });
     return 0;
@@ -253,7 +225,23 @@ class _SearchPageWidgetState extends State<SearchPageWidget> {
                                 focusColor: Colors.transparent,
                                 splashColor: Colors.transparent,
                                 onTap: () {
-                                  showFilter(context);
+                                  Navigator.of(context).push(
+                                    newCreateRoute(
+                                      FilterWidget(
+                                        selectedLocationFilter: _selectedLocationFilter,
+                                        selectedEventTypeFilter: _selectedEventTypeFilter,
+                                        selectedArtistFilter: _selectedArtistFilter,
+                                        callbackFilter: (selectedLocationFilter, selectedEventTypeFilter, selectedArtistFilter) {
+                                          setState(() {
+                                            _selectedLocationFilter = selectedLocationFilter;
+                                            _selectedEventTypeFilter = selectedEventTypeFilter;
+                                            _selectedArtistFilter = selectedArtistFilter;
+                                          });
+                                          search();
+                                        },
+                                      ),
+                                    ),
+                                  );
                                 },
                                 child: Container(
                                     padding: const EdgeInsets.fromLTRB(15, 5, 15, 5),
@@ -440,21 +428,18 @@ class _SearchPageWidgetState extends State<SearchPageWidget> {
                                 _selectedEventTypeFilter != '' ||
                                 _selectedArtistFilter != '' ||
                                 dateTimeSelected != null))
-                              Padding(
-                                padding: const EdgeInsets.only(bottom: 10),
-                                child: Text(
-                                  AppLocalizations.of(context).translate("Suggestions for you"),
-                                  style: const TextStyle(
-                                    fontWeight: FontWeight.w500,
-                                    fontSize: 16,
-                                  ),
+                              Text(
+                                AppLocalizations.of(context).translate("Suggestions for you"),
+                                style: const TextStyle(
+                                  fontWeight: FontWeight.w500,
+                                  fontSize: 16,
                                 ),
                               ),
                             events.isNotEmpty
                                 ? Column(
                                     crossAxisAlignment: CrossAxisAlignment.start,
                                     children: [
-                                      const SizedBox(height: 15),
+                                      const SizedBox(height: 10),
                                       for (Event event in events)
                                         InkWell(
                                           hoverColor: Colors.transparent,
@@ -559,262 +544,5 @@ class _SearchPageWidgetState extends State<SearchPageWidget> {
         },
       );
     });
-  }
-
-  showFilter(BuildContext context) {
-    List listLocations = [
-      {"name": AppLocalizations.of(context).translate("Ha Noi"), "value": "Hà Nội"},
-      {"name": AppLocalizations.of(context).translate("Da Nang"), "value": "Đà Nẵng"},
-      {"name": AppLocalizations.of(context).translate("Da Lat"), "value": "Đà Lạt"},
-      {"name": AppLocalizations.of(context).translate("Ho Chi Minh"), "value": "Hồ Chí Minh"},
-      {"name": AppLocalizations.of(context).translate("Others"), "value": "Others"},
-    ];
-    showModalBottomSheet(
-      backgroundColor: Colors.grey[200],
-      context: context,
-      builder: (builder) {
-        return SingleChildScrollView(
-          child: Padding(
-            padding: const EdgeInsets.fromLTRB(20, 20, 20, 15),
-            child: Padding(
-              padding: const EdgeInsets.symmetric(horizontal: 10),
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Center(
-                    child: Text(
-                      AppLocalizations.of(context).translate("Filters"),
-                      style: const TextStyle(
-                        fontSize: 18,
-                        fontWeight: FontWeight.w500,
-                      ),
-                    ),
-                  ),
-                  const SizedBox(height: 15),
-                  Container(
-                    padding: const EdgeInsets.symmetric(vertical: 8, horizontal: 5),
-                    decoration: const BoxDecoration(
-                      border: Border(
-                        top: BorderSide(color: Colors.grey),
-                        bottom: BorderSide(color: Colors.grey),
-                      ),
-                    ),
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        Text(
-                          AppLocalizations.of(context).translate("Location"),
-                          style: const TextStyle(
-                            fontSize: 15,
-                            fontWeight: FontWeight.w500,
-                          ),
-                        ),
-                        Padding(
-                          padding: const EdgeInsets.fromLTRB(15, 10, 0, 0),
-                          child: Column(
-                            crossAxisAlignment: CrossAxisAlignment.start,
-                            children: listLocations.map((option) {
-                              return Row(
-                                children: [
-                                  Radio<String>(
-                                    value: option["value"],
-                                    groupValue: _selectedLocationFilter,
-                                    onChanged: (String? newValue) {
-                                      setState(() {
-                                        _selectedLocationFilter = newValue!;
-                                      });
-                                    },
-                                  ),
-                                  const SizedBox(width: 10),
-                                  Text(option["name"], style: const TextStyle(fontSize: 14)),
-                                ],
-                              );
-                            }).toList(),
-                          ),
-                        ),
-                      ],
-                    ),
-                  ),
-                  const SizedBox(height: 10),
-                  Container(
-                    padding: const EdgeInsets.symmetric(vertical: 8, horizontal: 5),
-                    decoration: const BoxDecoration(
-                      border: Border(
-                        bottom: BorderSide(color: Colors.grey),
-                      ),
-                    ),
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        Text(
-                          AppLocalizations.of(context).translate("Event type"),
-                          style: const TextStyle(
-                            fontSize: 15,
-                            fontWeight: FontWeight.w500,
-                          ),
-                        ),
-                        Padding(
-                          padding: const EdgeInsets.fromLTRB(15, 10, 0, 0),
-                          child: SingleChildScrollView(
-                            scrollDirection: Axis.horizontal,
-                            child: Row(
-                              children: [
-                                for (var eventType in eventTypes)
-                                  Container(
-                                    padding: const EdgeInsets.fromLTRB(12, 3, 12, 3),
-                                    decoration: BoxDecoration(
-                                      border: Border.all(color: _selectedEventTypeFilter == eventType.type ? Colors.blue : Colors.grey),
-                                      borderRadius: BorderRadius.circular(99),
-                                    ),
-                                    margin: const EdgeInsets.only(right: 10),
-                                    child: InkWell(
-                                      hoverColor: Colors.transparent,
-                                      highlightColor: Colors.transparent,
-                                      focusColor: Colors.transparent,
-                                      splashColor: Colors.transparent,
-                                      onTap: () {
-                                        setState(() {
-                                          _selectedEventTypeFilter = eventType.type;
-                                        });
-                                      },
-                                      child: Text(
-                                        eventType.type,
-                                        style:
-                                            TextStyle(fontSize: 14, color: _selectedEventTypeFilter == eventType.type ? Colors.blue : Colors.black),
-                                      ),
-                                    ),
-                                  ),
-                              ],
-                            ),
-                          ),
-                        ),
-                      ],
-                    ),
-                  ),
-                  const SizedBox(height: 10),
-                  Container(
-                    padding: const EdgeInsets.symmetric(vertical: 8, horizontal: 5),
-                    decoration: const BoxDecoration(
-                      border: Border(
-                        bottom: BorderSide(color: Colors.grey),
-                      ),
-                    ),
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        Text(
-                          AppLocalizations.of(context).translate("Artist"),
-                          style: const TextStyle(
-                            fontSize: 15,
-                            fontWeight: FontWeight.w500,
-                          ),
-                        ),
-                        Padding(
-                          padding: const EdgeInsets.fromLTRB(15, 10, 0, 0),
-                          child: SingleChildScrollView(
-                            scrollDirection: Axis.horizontal,
-                            child: Row(
-                              children: [
-                                for (var artist in artists)
-                                  Container(
-                                    decoration: BoxDecoration(
-                                      border: _selectedArtistFilter == artist.name ? Border.all(color: Colors.blue, width: 3) : null,
-                                      borderRadius: BorderRadius.circular(99),
-                                    ),
-                                    margin: const EdgeInsets.only(right: 10),
-                                    child: Tooltip(
-                                      message: artist.name,
-                                      child: InkWell(
-                                        hoverColor: Colors.transparent,
-                                        highlightColor: Colors.transparent,
-                                        focusColor: Colors.transparent,
-                                        splashColor: Colors.transparent,
-                                        onTap: () {
-                                          setState(() {
-                                            _selectedArtistFilter = artist.name;
-                                          });
-                                        },
-                                        child: SizedBox(
-                                          width: 38,
-                                          height: 38,
-                                          child: ClipRRect(
-                                            borderRadius: BorderRadius.circular(99),
-                                            child: Image.asset("images/${artist.avatar}", fit: BoxFit.cover),
-                                          ),
-                                        ),
-                                      ),
-                                    ),
-                                  ),
-                              ],
-                            ),
-                          ),
-                        ),
-                      ],
-                    ),
-                  ),
-                  const SizedBox(height: 10),
-                  Padding(
-                    padding: const EdgeInsets.only(top: 5),
-                    child: Row(
-                      mainAxisAlignment: MainAxisAlignment.center,
-                      children: [
-                        Expanded(
-                          child: InkWell(
-                            hoverColor: Colors.transparent,
-                            highlightColor: Colors.transparent,
-                            focusColor: Colors.transparent,
-                            splashColor: Colors.transparent,
-                            onTap: () {
-                              setState(() {
-                                _selectedLocationFilter = '';
-                                _selectedEventTypeFilter = '';
-                                _selectedArtistFilter = '';
-                                search();
-                              });
-                            },
-                            child: Container(
-                              padding: const EdgeInsets.symmetric(vertical: 5),
-                              decoration: BoxDecoration(border: Border.all(color: const Color(0xFF2DC275)), borderRadius: BorderRadius.circular(5)),
-                              child: Center(
-                                  child: Text(AppLocalizations.of(context).translate("Reset"),
-                                      style: const TextStyle(fontSize: 15, fontWeight: FontWeight.w500, color: Color(0xFF2DC275)))),
-                            ),
-                          ),
-                        ),
-                        const SizedBox(width: 15),
-                        Expanded(
-                          child: InkWell(
-                            hoverColor: Colors.transparent,
-                            highlightColor: Colors.transparent,
-                            focusColor: Colors.transparent,
-                            splashColor: Colors.transparent,
-                            onTap: () {
-                              setState(() {
-                                Navigator.pop(context);
-                                search();
-                              });
-                            },
-                            child: Container(
-                              padding: const EdgeInsets.symmetric(vertical: 5),
-                              decoration: BoxDecoration(
-                                  color: const Color(0xFF2DC275),
-                                  border: Border.all(color: const Color(0xFF2DC275)),
-                                  borderRadius: BorderRadius.circular(5)),
-                              child: Center(
-                                  child: Text(AppLocalizations.of(context).translate("Apply"),
-                                      style: const TextStyle(fontSize: 15, fontWeight: FontWeight.w500, color: Colors.white))),
-                            ),
-                          ),
-                        ),
-                      ],
-                    ),
-                  ),
-                ],
-              ),
-            ),
-          ),
-        );
-      },
-    );
   }
 }

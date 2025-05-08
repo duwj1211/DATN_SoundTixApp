@@ -91,7 +91,7 @@ class _BookingItemWidgetState extends State<BookingItemWidget> {
           const SizedBox(height: 10),
           Column(
             children: [
-              for (Ticket ticket in tickets) TicketItemWidget(ticket: ticket),
+              for (Ticket ticket in tickets) TicketItemWidget(ticket: ticket, quantity: widget.booking.quantity),
             ],
           ),
           Row(

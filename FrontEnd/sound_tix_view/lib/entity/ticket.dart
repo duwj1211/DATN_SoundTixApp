@@ -5,14 +5,18 @@ class Ticket {
   String name;
   int price;
   int quantityAvailable;
+  int sold;
   String detailInformation;
+  String qrCode;
 
   Ticket({
     this.ticketId,
     required this.name,
     required this.price,
     required this.quantityAvailable,
+    required this.sold,
     required this.detailInformation,
+    required this.qrCode,
   });
 
   Ticket copyWith({
@@ -20,14 +24,18 @@ class Ticket {
     String? name,
     int? price,
     int? quantityAvailable,
+    int? sold,
     String? detailInformation,
+    String? qrCode,
   }) {
     return Ticket(
       ticketId: ticketId ?? this.ticketId,
       name: name ?? this.name,
       price: price ?? this.price,
       quantityAvailable: quantityAvailable ?? this.quantityAvailable,
+      sold: sold ?? this.sold,
       detailInformation: detailInformation ?? this.detailInformation,
+      qrCode: qrCode ?? this.qrCode,
     );
   }
 
@@ -37,7 +45,9 @@ class Ticket {
       'name': name,
       'price': price,
       'quantityAvailable': quantityAvailable,
+      'sold': sold,
       'detailInformation': detailInformation,
+      'qrCode': qrCode,
     };
   }
 
@@ -47,7 +57,9 @@ class Ticket {
       name: map['name'] as String,
       price: map['price'] as int,
       quantityAvailable: map['quantityAvailable'] as int,
+      sold: map['sold'] as int,
       detailInformation: map['detailInformation'] as String,
+      qrCode: map['qrCode'] as String,
     );
   }
 
@@ -57,7 +69,7 @@ class Ticket {
 
   @override
   String toString() {
-    return 'Ticket(ticketId: $ticketId, name: $name, price: $price, quantityAvailable: $quantityAvailable, detailInformation: $detailInformation)';
+    return 'Ticket(ticketId: $ticketId, name: $name, price: $price, quantityAvailable: $quantityAvailable, sold: $sold, detailInformation: $detailInformation, qrCode: $qrCode)';
   }
 
   @override
@@ -68,11 +80,19 @@ class Ticket {
         other.name == name &&
         other.price == price &&
         other.quantityAvailable == quantityAvailable &&
-        other.detailInformation == detailInformation;
+        other.sold == sold &&
+        other.detailInformation == detailInformation &&
+        other.qrCode == qrCode;
   }
 
   @override
   int get hashCode {
-    return ticketId.hashCode ^ name.hashCode ^ price.hashCode ^ quantityAvailable.hashCode ^ detailInformation.hashCode;
+    return ticketId.hashCode ^
+        name.hashCode ^
+        price.hashCode ^
+        quantityAvailable.hashCode ^
+        sold.hashCode ^
+        detailInformation.hashCode ^
+        qrCode.hashCode;
   }
 }

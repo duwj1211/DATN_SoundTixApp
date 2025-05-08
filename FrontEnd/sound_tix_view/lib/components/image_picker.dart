@@ -1,8 +1,8 @@
 import 'dart:io';
 import 'dart:typed_data';
 
+import 'package:file_picker/file_picker.dart';
 import 'package:flutter/material.dart';
-import 'package:image_picker/image_picker.dart';
 import 'package:sound_tix_view/components/app_localizations.dart';
 
 class ImportImageWidget extends StatefulWidget {
@@ -108,7 +108,7 @@ class _ImportImageWidgetState extends State<ImportImageWidget> {
                     Expanded(
                       child: InkWell(
                         onTap: () {
-                          _pickImageFromCamera();
+                          // _pickImageFromCamera();
                         },
                         child: SizedBox(
                           child: Column(
@@ -133,31 +133,53 @@ class _ImportImageWidgetState extends State<ImportImageWidget> {
     );
   }
 
+  // Future<void> _pickImageFromGallery() async {
+  //   final ImagePicker picker = ImagePicker();
+  //   final XFile? returnImage = await picker.pickImage(source: ImageSource.gallery);
+  //   if (returnImage == null) return;
+  //   _processImage(returnImage);
+  //   Navigator.pop(context);
+  // }
+
   Future<void> _pickImageFromGallery() async {
-    final ImagePicker picker = ImagePicker();
-    final XFile? returnImage = await picker.pickImage(source: ImageSource.gallery);
-    if (returnImage == null) return;
-    _processImage(returnImage);
-    Navigator.pop(context);
+    final result = await FilePicker.platform.pickFiles(
+      type: FileType.image,
+      withData: true,
+    );
+
+    if (result != null && result.files.single.bytes != null) {
+      _processImage(result.files.single.bytes!, result.files.single.path);
+      Navigator.pop(context);
+    }
   }
 
-  Future<void> _pickImageFromCamera() async {
-    final ImagePicker picker = ImagePicker();
-    final XFile? returnImage = await picker.pickImage(source: ImageSource.camera);
-    if (returnImage == null) return;
-    _processImage(returnImage);
-    Navigator.pop(context);
-  }
+  // Future<void> _pickImageFromCamera() async {
+  //   final ImagePicker picker = ImagePicker();
+  //   final XFile? returnImage = await picker.pickImage(source: ImageSource.camera);
+  //   if (returnImage == null) return;
+  //   _processImage(returnImage);
+  //   Navigator.pop(context);
+  // }
 
-  void _processImage(XFile imageFile) async {
+  // void _processImage(XFile imageFile) async {
+  //   setState(() {
+  //     image = File(imageFile.path).readAsBytesSync();
+  //   });
+
+  //   await _saveImageToLocalDirectory(imageFile);
+  // }
+
+  void _processImage(Uint8List imageBytes, String? path) async {
     setState(() {
-      image = File(imageFile.path).readAsBytesSync();
+      image = imageBytes;
     });
 
-    await _saveImageToLocalDirectory(imageFile);
+    if (path != null) {
+      await _saveImageToLocalDirectory(File(path));
+    }
   }
 
-  Future<void> _saveImageToLocalDirectory(XFile imageFile) async {
+  Future<void> _saveImageToLocalDirectory(File imageFile) async {
     try {
       const folderPath = 'C:/Project/FrontEnd/sound_tix_view/images';
       final folder = Directory(folderPath);
@@ -165,7 +187,7 @@ class _ImportImageWidgetState extends State<ImportImageWidget> {
         folder.createSync(recursive: true);
       }
 
-      String newFileName = 'image_${DateTime.now()}.png';
+      String newFileName = 'image_${DateTime.now().toIso8601String().replaceAll(":", "-")}.png';
       final newPath = '$folderPath/$newFileName';
 
       await File(imageFile.path).copy(newPath);

@@ -271,7 +271,7 @@ class _OrderDetailWidgetState extends State<OrderDetailWidget> {
                   mainAxisAlignment: pw.MainAxisAlignment.end,
                   children: [
                     pw.Text(
-                      "Total: ${widget.booking.totalPrice}.000 VNĐ",
+                      "Total: ${NumberFormat('#,###', 'vi_VN').format(widget.booking.totalPrice)}.000 VNĐ",
                       style: pw.TextStyle(
                         fontSize: 15,
                         fontWeight: pw.FontWeight.bold,
@@ -299,6 +299,68 @@ class _OrderDetailWidgetState extends State<OrderDetailWidget> {
     ScaffoldMessenger.of(context).showSnackBar(
       SnackBar(
         content: Text(AppLocalizations.of(context).translate('Billing successful')),
+        duration: const Duration(seconds: 1),
+      ),
+    );
+  }
+
+  Future<void> exportETicket() async {
+    final imageBytes = await loadImageForPDF(tickets[0].qrCode);
+    // Tạo một document PDF
+    final pdf = pw.Document();
+
+    // Thêm nội dung vào PDF
+    pdf.addPage(
+      pw.Page(
+        pageFormat: PdfPageFormat.a4,
+        build: (pw.Context context) {
+          return pw.Column(
+            crossAxisAlignment: pw.CrossAxisAlignment.start,
+            children: [
+              pw.Center(
+                child: pw.Text(
+                  "E-ticket of '${tickets[0].name}'",
+                  style: pw.TextStyle(
+                    fontSize: 16,
+                    fontWeight: pw.FontWeight.bold,
+                  ),
+                ),
+              ),
+              pw.SizedBox(height: 10),
+              pw.Text(
+                "Quantity: ${widget.booking.quantity}",
+                style: const pw.TextStyle(fontSize: 12),
+              ),
+              pw.SizedBox(height: 5),
+              pw.Text(
+                "The qrCode is used to check in to the event. Do not reveal it, otherwise we will not be responsible. Thank you!",
+                style: const pw.TextStyle(fontSize: 12),
+              ),
+              pw.SizedBox(height: 30),
+              pw.Center(
+                child: pw.Container(
+                  width: 150,
+                  height: 150,
+                  child: pw.Image(pw.MemoryImage(imageBytes)),
+                ),
+              ),
+            ],
+          );
+        },
+      ),
+    );
+
+    String? selectedDirectory = await FilePicker.platform.getDirectoryPath();
+    if (selectedDirectory == null) {
+      return;
+    }
+
+    final filePath = '$selectedDirectory/E-Ticket_${tickets[0].name}.pdf';
+    final file = File(filePath);
+    await file.writeAsBytes(await pdf.save());
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(
+        content: Text(AppLocalizations.of(context).translate('Export e-ticket successful')),
         duration: const Duration(seconds: 1),
       ),
     );
@@ -367,7 +429,7 @@ class _OrderDetailWidgetState extends State<OrderDetailWidget> {
                       mainAxisAlignment: pw.MainAxisAlignment.spaceBetween,
                       children: [
                         pw.Text(
-                          "x1",
+                          "x ${widget.booking.quantity}",
                           style: pw.TextStyle(
                             fontSize: 12,
                             fontWeight: pw.FontWeight.normal,
@@ -530,7 +592,7 @@ class _OrderDetailWidgetState extends State<OrderDetailWidget> {
                             ),
                           ),
                           const SizedBox(height: 10),
-                          for (Ticket ticket in tickets) TicketItemWidget(ticket: ticket),
+                          for (Ticket ticket in tickets) TicketItemWidget(ticket: ticket, quantity: widget.booking.quantity),
                         ],
                       ),
                     ),
@@ -627,7 +689,7 @@ class _OrderDetailWidgetState extends State<OrderDetailWidget> {
                         Text(
                           AppLocalizations.of(context)
                               .translate("Total: totalPrice")
-                              .replaceAll("{totalPrice}", widget.booking.totalPrice.toString()),
+                              .replaceAll("{totalPrice}", NumberFormat('#,###', 'vi_VN').format(widget.booking.totalPrice)),
                           style: const TextStyle(
                             fontSize: 15,
                             fontWeight: FontWeight.w500,
@@ -640,6 +702,33 @@ class _OrderDetailWidgetState extends State<OrderDetailWidget> {
                     Row(
                       mainAxisAlignment: MainAxisAlignment.end,
                       children: [
+                        InkWell(
+                          hoverColor: Colors.transparent,
+                          highlightColor: Colors.transparent,
+                          focusColor: Colors.transparent,
+                          splashColor: Colors.transparent,
+                          onTap: () async {
+                            await exportETicket();
+                          },
+                          child: Container(
+                            padding: const EdgeInsets.fromLTRB(15, 5, 15, 5),
+                            decoration: BoxDecoration(
+                              border: Border.all(
+                                color: const Color(0xFF2DC275),
+                              ),
+                              borderRadius: BorderRadius.circular(5),
+                            ),
+                            child: Text(
+                              AppLocalizations.of(context).translate("E-Ticket"),
+                              style: const TextStyle(
+                                fontSize: 14,
+                                fontWeight: FontWeight.w500,
+                                color: Color(0xFF2DC275),
+                              ),
+                            ),
+                          ),
+                        ),
+                        const SizedBox(width: 10),
                         InkWell(
                           hoverColor: Colors.transparent,
                           highlightColor: Colors.transparent,
@@ -662,33 +751,6 @@ class _OrderDetailWidgetState extends State<OrderDetailWidget> {
                                 fontSize: 14,
                                 fontWeight: FontWeight.w500,
                                 color: Colors.blue,
-                              ),
-                            ),
-                          ),
-                        ),
-                        const SizedBox(width: 10),
-                        InkWell(
-                          hoverColor: Colors.transparent,
-                          highlightColor: Colors.transparent,
-                          focusColor: Colors.transparent,
-                          splashColor: Colors.transparent,
-                          onTap: () {
-                            Navigator.pop(context);
-                          },
-                          child: Container(
-                            padding: const EdgeInsets.fromLTRB(15, 5, 15, 5),
-                            decoration: BoxDecoration(
-                              border: Border.all(
-                                color: Colors.grey,
-                              ),
-                              borderRadius: BorderRadius.circular(5),
-                            ),
-                            child: Text(
-                              AppLocalizations.of(context).translate("Cancel"),
-                              style: const TextStyle(
-                                fontSize: 14,
-                                fontWeight: FontWeight.w500,
-                                color: Colors.grey,
                               ),
                             ),
                           ),

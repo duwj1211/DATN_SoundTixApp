@@ -16,6 +16,7 @@ class HomePage extends StatefulWidget {
 
 class _HomePageState extends State<HomePage> {
   int currentPageIndex = 0;
+  int userId = 6;
 
   @override
   void initState() {
@@ -35,7 +36,7 @@ class _HomePageState extends State<HomePage> {
           ),
           SingleChildScrollView(
             child: MyTicketPage(
-              user: "Nguyễn Phương Linh",
+              userId: userId,
               callbackPageIndex: (newIndex) {
                 setState(() {
                   currentPageIndex = newIndex;
@@ -65,9 +66,15 @@ class _HomePageState extends State<HomePage> {
             },
             selectedIndex: currentPageIndex,
             destinations: [
-              NavigationDestination(icon: Icon(Icons.home, color: changeThemeModel.isDark ? Colors.white : Colors.black), label: AppLocalizations.of(context).translate("Home")),
-              NavigationDestination(icon: Icon(Icons.shopping_cart, color: changeThemeModel.isDark ? Colors.white : Colors.black), label: AppLocalizations.of(context).translate("My Order")),
-              NavigationDestination(icon: Icon(Icons.person, color: changeThemeModel.isDark ? Colors.white : Colors.black), label: AppLocalizations.of(context).translate("Profile")),
+              NavigationDestination(
+                  icon: Icon(Icons.home, color: changeThemeModel.isDark ? Colors.white : Colors.black),
+                  label: AppLocalizations.of(context).translate("Home")),
+              NavigationDestination(
+                  icon: Icon(Icons.shopping_cart, color: changeThemeModel.isDark ? Colors.white : Colors.black),
+                  label: AppLocalizations.of(context).translate("My Ticket")),
+              NavigationDestination(
+                  icon: Icon(Icons.person, color: changeThemeModel.isDark ? Colors.white : Colors.black),
+                  label: AppLocalizations.of(context).translate("Profile")),
             ],
           ),
         ),

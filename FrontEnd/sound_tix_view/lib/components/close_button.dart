@@ -3,7 +3,8 @@ import 'package:go_router/go_router.dart';
 import 'package:sound_tix_view/components/app_localizations.dart';
 
 class ButtonBack extends StatelessWidget {
-  const ButtonBack({super.key});
+  final bool? isPopScreen;
+  const ButtonBack({super.key, this.isPopScreen = false});
 
   @override
   Widget build(BuildContext context) {
@@ -17,11 +18,15 @@ class ButtonBack extends StatelessWidget {
           focusColor: Colors.transparent,
           splashColor: Colors.transparent,
           onTap: () {
-            final Map extra = (GoRouterState.of(context).extra ?? {}) as Map;
-            if (extra['oldUrl'] != null) {
-              context.go(extra['oldUrl']);
-            } else {
+            if (isPopScreen!) {
               Navigator.pop(context);
+            } else {
+              final Map extra = (GoRouterState.of(context).extra ?? {}) as Map;
+              if (extra['oldUrl'] != null) {
+                context.go(extra['oldUrl']);
+              } else {
+                Navigator.pop(context);
+              }
             }
           },
           child: const Icon(Icons.arrow_back, size: 20, color: Colors.white)),
