@@ -5,7 +5,6 @@ import 'package:sound_tix_view/api.dart';
 import 'package:sound_tix_view/components/app_localizations.dart';
 import 'package:sound_tix_view/components/close_button.dart';
 import 'package:sound_tix_view/entity/event.dart';
-import 'package:sound_tix_view/entity/interested_ticket.dart';
 import 'package:sound_tix_view/entity/ticket.dart';
 
 class DetailPage extends StatefulWidget {
@@ -23,16 +22,12 @@ class _DetailPageState extends State<DetailPage> {
   bool _isLoading = false;
   int minPrice = 0;
   final Map<int, bool> _isShowMap = {};
-  List<InterestedTicket> interestedEvents = [];
-  bool isFavorited = false;
-  int interestedEventId = 0;
 
   @override
   void initState() {
     int eventId = int.parse(widget.id!);
     getDetailEvent(eventId);
     searchTicketsAndDisplay(eventId);
-    getListInterestedEvents(widget.id);
     super.initState();
   }
 
@@ -66,50 +61,6 @@ class _DetailPageState extends State<DetailPage> {
       _isLoading = false;
     });
     return 0;
-  }
-
-  getListInterestedEvents(eventId) async {
-    var rawData = await httpPost("http://localhost:8080/interested-event/search", {"userId": 1, "eventId": eventId});
-
-    setState(() {
-      interestedEvents = [];
-
-      for (var element in rawData["body"]["content"]) {
-        var interestedEvent = InterestedTicket.fromMap(element);
-        interestedEvents.add(interestedEvent);
-      }
-    });
-    if (interestedEvents.isNotEmpty) {
-      isFavorited = true;
-      interestedEventId = interestedEvents[0].interestedId!;
-    }
-    return 0;
-  }
-
-  updateInterestedEvent(eventId) async {
-    dynamic intertestedData = {
-      "user": {"userId": 1},
-      "events": [
-        {"eventId": eventId}
-      ],
-    };
-
-    var response = await httpPatch("http://localhost:8080/interested-event/update/$interestedEventId", intertestedData);
-    if (response['statusCode'] == 200) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(
-          content: Text(AppLocalizations.of(context).translate('Event added to favorites list successfully')),
-          duration: const Duration(seconds: 1),
-        ),
-      );
-    } else {
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(
-          content: Text(AppLocalizations.of(context).translate('Adding event to favorites failed')),
-          duration: const Duration(seconds: 1),
-        ),
-      );
-    }
   }
 
   @override
@@ -175,7 +126,7 @@ class _DetailPageState extends State<DetailPage> {
                                           const Icon(Icons.calendar_month, size: 18, color: Colors.white),
                                           const SizedBox(width: 10),
                                           Text(
-                                            DateFormat("dd-MM-yyyy").format(event!.dateTime),
+                                            DateFormat("dd MMM yyyy").format(event!.dateTime),
                                             style: const TextStyle(fontSize: 14, fontWeight: FontWeight.w500, color: Color(0xFF2DC275)),
                                           ),
                                         ],
@@ -199,105 +150,19 @@ class _DetailPageState extends State<DetailPage> {
                           ),
                           const SizedBox(height: 15),
                           Container(
-                            decoration: BoxDecoration(
-                              border: Border.all(color: Colors.grey),
-                            ),
-                            child: Row(
-                              children: [
-                                Expanded(
-                                  child: Container(
-                                    padding: const EdgeInsets.all(6),
-                                    decoration: const BoxDecoration(
-                                      border: Border(
-                                        right: BorderSide(
-                                          color: Colors.grey,
-                                          width: 0.5,
-                                        ),
-                                      ),
-                                    ),
-                                    child: InkWell(
-                                      hoverColor: Colors.transparent,
-                                      highlightColor: Colors.transparent,
-                                      focusColor: Colors.transparent,
-                                      splashColor: Colors.transparent,
-                                      onTap: () {
-                                        updateInterestedEvent(event?.eventId);
-                                      },
-                                      child: Row(
-                                        mainAxisAlignment: MainAxisAlignment.center,
-                                        children: [
-                                          Icon(
-                                            isFavorited ? Icons.favorite : Icons.favorite_outline,
-                                            size: 22,
-                                            color: isFavorited ? Colors.red : Colors.grey,
-                                          ),
-                                          const SizedBox(width: 10),
-                                          Text(
-                                            isFavorited
-                                                ? AppLocalizations.of(context).translate("INTERESTED")
-                                                : AppLocalizations.of(context).translate("INTEREST"),
-                                            style: TextStyle(
-                                              fontSize: 14,
-                                              color: Colors.grey[700],
-                                            ),
-                                          ),
-                                        ],
-                                      ),
-                                    ),
-                                  ),
-                                ),
-                                Expanded(
-                                  child: Container(
-                                    padding: const EdgeInsets.all(6),
-                                    decoration: const BoxDecoration(
-                                      border: Border(
-                                        left: BorderSide(
-                                          color: Colors.grey,
-                                          width: 0.5,
-                                        ),
-                                      ),
-                                    ),
-                                    child: InkWell(
-                                      hoverColor: Colors.transparent,
-                                      highlightColor: Colors.transparent,
-                                      focusColor: Colors.transparent,
-                                      splashColor: Colors.transparent,
-                                      onTap: () {},
-                                      child: Row(
-                                        mainAxisAlignment: MainAxisAlignment.center,
-                                        children: [
-                                          const Icon(
-                                            Icons.facebook,
-                                            size: 22,
-                                            color: Colors.blue,
-                                          ),
-                                          const SizedBox(width: 10),
-                                          Text(
-                                            AppLocalizations.of(context).translate("SHARE"),
-                                            style: TextStyle(
-                                              fontSize: 14,
-                                              color: Colors.grey[700],
-                                            ),
-                                          ),
-                                        ],
-                                      ),
-                                    ),
-                                  ),
-                                ),
-                              ],
-                            ),
-                          ),
-                          const SizedBox(height: 15),
-                          Container(
                             padding: const EdgeInsets.all(10),
                             decoration:
                                 BoxDecoration(color: Colors.white, border: Border.all(color: Colors.grey), borderRadius: BorderRadius.circular(8)),
                             child: Column(
                               crossAxisAlignment: CrossAxisAlignment.start,
                               children: [
-                                Text(
-                                  AppLocalizations.of(context).translate("Introduce"),
-                                  style: const TextStyle(fontSize: 16, fontWeight: FontWeight.w500),
+                                Row(
+                                  children: [
+                                    Text(
+                                      AppLocalizations.of(context).translate("Introduce"),
+                                      style: const TextStyle(fontSize: 16, fontWeight: FontWeight.w500),
+                                    ),
+                                  ],
                                 ),
                                 const SizedBox(height: 15),
                                 Text(
@@ -319,8 +184,12 @@ class _DetailPageState extends State<DetailPage> {
                                   child: Column(
                                     crossAxisAlignment: CrossAxisAlignment.start,
                                     children: [
-                                      Text(AppLocalizations.of(context).translate("Ticket information"),
-                                          style: const TextStyle(fontSize: 16, fontWeight: FontWeight.w500, color: Colors.white)),
+                                      Row(
+                                        children: [
+                                          Text(AppLocalizations.of(context).translate("Ticket information"),
+                                              style: const TextStyle(fontSize: 16, fontWeight: FontWeight.w500, color: Colors.white)),
+                                        ],
+                                      ),
                                       const SizedBox(height: 15),
                                       for (Ticket ticket in tickets)
                                         Column(
@@ -357,16 +226,14 @@ class _DetailPageState extends State<DetailPage> {
                                               Row(
                                                 children: [
                                                   const SizedBox(width: 30),
-                                                  Column(
-                                                    children: [
-                                                      Padding(
-                                                        padding: const EdgeInsets.fromLTRB(0, 10, 0, 10),
-                                                        child: Text(
-                                                          ticket.detailInformation,
-                                                          style: const TextStyle(color: Colors.white, fontSize: 12),
-                                                        ),
+                                                  Expanded(
+                                                    child: Padding(
+                                                      padding: const EdgeInsets.symmetric(vertical: 10),
+                                                      child: Text(
+                                                        ticket.detailInformation,
+                                                        style: const TextStyle(color: Colors.white, fontSize: 12),
                                                       ),
-                                                    ],
+                                                    ),
                                                   ),
                                                 ],
                                               ),
@@ -384,10 +251,22 @@ class _DetailPageState extends State<DetailPage> {
                             child: Column(
                               crossAxisAlignment: CrossAxisAlignment.start,
                               children: [
-                                Text(AppLocalizations.of(context).translate("Organizing Committee"),
-                                    style: const TextStyle(fontSize: 16, fontWeight: FontWeight.w500)),
+                                Row(
+                                  children: [
+                                    Text(AppLocalizations.of(context).translate("Organizing Committee"),
+                                        style: const TextStyle(fontSize: 16, fontWeight: FontWeight.w500)),
+                                  ],
+                                ),
                                 const SizedBox(height: 15),
-                                Text(event!.description, style: const TextStyle(fontSize: 14)),
+                                Image.asset(
+                                  "images/${event!.organizerAvatar}",
+                                  height: 100,
+                                  width: 100,
+                                ),
+                                const SizedBox(height: 10),
+                                Text(event!.organizer, style: const TextStyle(fontSize: 16, fontWeight: FontWeight.w600)),
+                                const SizedBox(height: 5),
+                                Text(event!.organizerDescription, style: const TextStyle(fontSize: 14)),
                               ],
                             ),
                           ),

@@ -8,9 +8,9 @@ import 'package:sound_tix_view/page/home_page/my_order/booking_item_widget.dart'
 import 'package:sound_tix_view/page/home_page/my_order/order_detail_widget.dart';
 
 class MyTicketPage extends StatefulWidget {
-  final String user;
+  final int userId;
   final Function callbackPageIndex;
-  const MyTicketPage({super.key, required this.user, required this.callbackPageIndex});
+  const MyTicketPage({super.key, required this.userId, required this.callbackPageIndex});
 
   @override
   State<MyTicketPage> createState() => _MyTicketPageState();
@@ -34,7 +34,7 @@ class _MyTicketPageState extends State<MyTicketPage> {
   }
 
   getListBookings(page) async {
-    var rawData = await httpPost("http://localhost:8080/booking/search?page=$page&size=10", {"user": widget.user});
+    var rawData = await httpPost("http://localhost:8080/booking/search?page=$page&size=10", {"userId": widget.userId});
 
     setState(() {
       bookings = [];
@@ -62,7 +62,7 @@ class _MyTicketPageState extends State<MyTicketPage> {
                           Padding(
                             padding: const EdgeInsets.fromLTRB(15, 10, 15, 5),
                             child: Text(
-                              AppLocalizations.of(context).translate("My orders"),
+                              AppLocalizations.of(context).translate("My ticket"),
                               style: const TextStyle(
                                 fontSize: 18,
                                 fontWeight: FontWeight.bold,

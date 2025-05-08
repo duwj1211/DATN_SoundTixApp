@@ -6,6 +6,7 @@ import 'package:sound_tix_view/api.dart';
 import 'package:sound_tix_view/components/app_localizations.dart';
 import 'package:sound_tix_view/entity/user.dart';
 import 'package:sound_tix_view/page/home_page/profile/account/change_password_widget.dart';
+import 'package:sound_tix_view/page/home_page/profile/account/delete_account_widget.dart';
 import 'package:sound_tix_view/page/home_page/profile/edit_profile.dart';
 import 'package:sound_tix_view/page/login/verification.dart';
 
@@ -90,7 +91,7 @@ class _ProfilePageState extends State<ProfilePage> {
                                         context,
                                         MaterialPageRoute(
                                           builder: (context) => EditProfileWidget(
-                                            userId: user!.userId ?? 1,
+                                            userId: user!.userId!,
                                             onCompleted: () {
                                               getDetailUser(userId);
                                             },
@@ -430,7 +431,7 @@ class _ProfilePageState extends State<ProfilePage> {
                                       context,
                                       MaterialPageRoute(
                                         builder: (context) => ChangePasswordWidget(
-                                          userId: user!.userId ?? 1,
+                                          userId: user!.userId!,
                                           onCompleted: () {
                                             getDetailUser(userId);
                                           },
@@ -458,7 +459,12 @@ class _ProfilePageState extends State<ProfilePage> {
                                   focusColor: Colors.transparent,
                                   splashColor: Colors.transparent,
                                   onTap: () {
-                                    context.go('/profile/delete-account');
+                                    Navigator.push(
+                                      context,
+                                      MaterialPageRoute(
+                                        builder: (context) => DeleteAccountWidget(userId: user!.userId!),
+                                      ),
+                                    );
                                   },
                                   child: Row(
                                     children: [
@@ -637,6 +643,15 @@ class _ProfilePageState extends State<ProfilePage> {
                                     ),
                                   );
                                 }
+                              }
+                              if (type == "logout") {
+                                context.go('/login');
+                                ScaffoldMessenger.of(context).showSnackBar(
+                                  const SnackBar(
+                                    content: Text('Đăng xuất thành công.'),
+                                    duration: Duration(seconds: 1),
+                                  ),
+                                );
                               }
                             },
                             child: Container(
