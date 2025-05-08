@@ -4,7 +4,6 @@ import 'package:sound_tix_admin/page/artist_management/artist_management.dart';
 import 'package:sound_tix_admin/page/order_tracker/order_tracker.dart';
 import 'package:sound_tix_admin/page/dashboard/dashboard.dart';
 import 'package:sound_tix_admin/page/event_management/event_management.dart';
-import 'package:sound_tix_admin/page/report_feedback/support_and_feedback.dart';
 import 'package:sound_tix_admin/page/ticket_management/ticket_management.dart';
 import 'package:sound_tix_admin/page/user_management/user_management.dart';
 
@@ -16,15 +15,7 @@ class HomePage extends StatefulWidget {
 }
 
 class _HomePageState extends State<HomePage> {
-  List<String> tabBarList = [
-    "Dashboard",
-    "User management",
-    "Event management",
-    "Ticket management",
-    "Artist Management",
-    "Order Tracker",
-    "Support & Feedback"
-  ];
+  List<String> tabBarList = ["Dashboard", "User management", "Event management", "Ticket management", "Artist Management", "Order Tracker"];
 
   final PageController _pageController = PageController();
   int selectedIndex = 0;
@@ -48,7 +39,6 @@ class _HomePageState extends State<HomePage> {
                   SoundTixRootPage(child: TicketManagementWidget()),
                   SoundTixRootPage(child: ArtistManagementWidget()),
                   SoundTixRootPage(child: OrderTrackerWidget()),
-                  SoundTixRootPage(child: SupportAndFeedbackWidget()),
                 ],
               ),
             ),

@@ -1,13 +1,24 @@
 import 'package:flutter/material.dart';
+import 'package:intl/intl.dart';
 import 'package:sound_tix_view/components/app_localizations.dart';
 
 class TicketWidget extends StatefulWidget {
+  final int ticketId;
   final String ticketName;
   final int price;
   final int quantityAvailable;
+  final int selectedTicketId;
+  final Function callbackSelectedTicketId;
   final Function callbackQuantityAndMoney;
   const TicketWidget(
-      {super.key, required this.ticketName, required this.price, required this.quantityAvailable, required this.callbackQuantityAndMoney});
+      {super.key,
+      required this.ticketId,
+      required this.ticketName,
+      required this.price,
+      required this.quantityAvailable,
+      required this.selectedTicketId,
+      required this.callbackSelectedTicketId,
+      required this.callbackQuantityAndMoney});
 
   @override
   State<TicketWidget> createState() => _TicketWidgetState();
@@ -22,7 +33,7 @@ class _TicketWidgetState extends State<TicketWidget> {
         quantityPick++;
       } else {
         ScaffoldMessenger.of(context).showSnackBar(
-           SnackBar(
+          SnackBar(
             content: Text(AppLocalizations.of(context).translate('Not enough tickets left')),
             duration: const Duration(seconds: 1),
           ),
@@ -56,75 +67,92 @@ class _TicketWidgetState extends State<TicketWidget> {
       child: Row(
         mainAxisAlignment: MainAxisAlignment.spaceBetween,
         children: [
-          Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              Text(widget.ticketName, style: const TextStyle(fontSize: 16, color: Color(0xFF2DC275), fontWeight: FontWeight.w700)),
-              Text("${widget.price}.000 đ", style: const TextStyle(fontSize: 14, color: Colors.white)),
-            ],
-          ),
           Row(
             children: [
-              InkWell(
-                hoverColor: Colors.transparent,
-                highlightColor: Colors.transparent,
-                focusColor: Colors.transparent,
-                splashColor: Colors.transparent,
-                onTap: _decrementQuantity,
-                child: Container(
-                  padding: const EdgeInsets.fromLTRB(5, 5, 5, 15),
-                  width: 30,
-                  height: 30,
-                  alignment: Alignment.center,
-                  decoration: BoxDecoration(
-                    color: Colors.white,
-                    borderRadius: BorderRadius.circular(3),
-                  ),
-                  child: const Icon(Icons.remove, color: Colors.green, size: 20),
-                ),
+              Checkbox(
+                value: widget.selectedTicketId == widget.ticketId,
+                onChanged: (value) {
+                  setState(() {
+                    widget.callbackSelectedTicketId(widget.ticketId);
+                    quantityPick = 0;
+                    totalMoney = 0;
+                    widget.callbackQuantityAndMoney(quantityPick, totalMoney);
+                  });
+                },
               ),
-              const SizedBox(width: 3),
-              Container(
-                padding: const EdgeInsets.fromLTRB(2, 0, 0, 16),
-                width: 30,
-                height: 30,
-                alignment: Alignment.center,
-                decoration: BoxDecoration(
-                  color: Colors.white,
-                  borderRadius: BorderRadius.circular(3),
-                ),
-                child: TextField(
-                  textAlign: TextAlign.center,
-                  keyboardType: TextInputType.number,
-                  style: const TextStyle(color: Colors.black),
-                  controller: TextEditingController(text: quantityPick.toString()),
-                  onChanged: _updateQuantity,
-                  decoration: const InputDecoration(
-                    border: InputBorder.none,
-                  ),
-                ),
-              ),
-              const SizedBox(width: 3),
-              InkWell(
-                hoverColor: Colors.transparent,
-                highlightColor: Colors.transparent,
-                focusColor: Colors.transparent,
-                splashColor: Colors.transparent,
-                onTap: _incrementQuantity,
-                child: Container(
-                  padding: const EdgeInsets.fromLTRB(5, 5, 5, 15),
-                  width: 30,
-                  height: 30,
-                  alignment: Alignment.center,
-                  decoration: BoxDecoration(
-                    color: Colors.white,
-                    borderRadius: BorderRadius.circular(3),
-                  ),
-                  child: const Icon(Icons.add, color: Colors.green, size: 20),
-                ),
+              const SizedBox(width: 5),
+              Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(widget.ticketName, style: const TextStyle(fontSize: 16, color: Color(0xFF2DC275), fontWeight: FontWeight.w700)),
+                  Text("${NumberFormat('#,###', 'vi_VN').format(widget.price)}.000 đ", style: const TextStyle(fontSize: 14, color: Colors.white)),
+                ],
               ),
             ],
           ),
+          if (widget.selectedTicketId == widget.ticketId)
+            Row(
+              children: [
+                InkWell(
+                  hoverColor: Colors.transparent,
+                  highlightColor: Colors.transparent,
+                  focusColor: Colors.transparent,
+                  splashColor: Colors.transparent,
+                  onTap: _decrementQuantity,
+                  child: Container(
+                    padding: const EdgeInsets.fromLTRB(5, 5, 5, 15),
+                    width: 30,
+                    height: 30,
+                    alignment: Alignment.center,
+                    decoration: BoxDecoration(
+                      color: Colors.white,
+                      borderRadius: BorderRadius.circular(3),
+                    ),
+                    child: const Icon(Icons.remove, color: Colors.green, size: 20),
+                  ),
+                ),
+                const SizedBox(width: 3),
+                Container(
+                  padding: const EdgeInsets.fromLTRB(2, 0, 0, 16),
+                  width: 30,
+                  height: 30,
+                  alignment: Alignment.center,
+                  decoration: BoxDecoration(
+                    color: Colors.white,
+                    borderRadius: BorderRadius.circular(3),
+                  ),
+                  child: TextField(
+                    textAlign: TextAlign.center,
+                    keyboardType: TextInputType.number,
+                    style: const TextStyle(color: Colors.black),
+                    controller: TextEditingController(text: quantityPick.toString()),
+                    onChanged: _updateQuantity,
+                    decoration: const InputDecoration(
+                      border: InputBorder.none,
+                    ),
+                  ),
+                ),
+                const SizedBox(width: 3),
+                InkWell(
+                  hoverColor: Colors.transparent,
+                  highlightColor: Colors.transparent,
+                  focusColor: Colors.transparent,
+                  splashColor: Colors.transparent,
+                  onTap: _incrementQuantity,
+                  child: Container(
+                    padding: const EdgeInsets.fromLTRB(5, 5, 5, 15),
+                    width: 30,
+                    height: 30,
+                    alignment: Alignment.center,
+                    decoration: BoxDecoration(
+                      color: Colors.white,
+                      borderRadius: BorderRadius.circular(3),
+                    ),
+                    child: const Icon(Icons.add, color: Colors.green, size: 20),
+                  ),
+                ),
+              ],
+            ),
         ],
       ),
     );

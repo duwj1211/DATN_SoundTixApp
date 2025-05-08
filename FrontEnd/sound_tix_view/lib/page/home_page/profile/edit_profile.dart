@@ -19,7 +19,6 @@ class EditProfileWidget extends StatefulWidget {
 
 class _EditProfileWidgetState extends State<EditProfileWidget> {
   User? user;
-  int userId = 1;
   bool _isLoadingEdit = true;
   String? fileName;
   String _selectedSex = '';
@@ -31,7 +30,7 @@ class _EditProfileWidgetState extends State<EditProfileWidget> {
 
   @override
   void initState() {
-    getDetailUser(userId);
+    getDetailUser(widget.userId);
     super.initState();
   }
 

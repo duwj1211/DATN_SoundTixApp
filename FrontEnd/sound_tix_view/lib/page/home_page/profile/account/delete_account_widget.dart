@@ -9,7 +9,8 @@ import 'package:sound_tix_view/model/model.dart';
 import 'package:sound_tix_view/page/login/verification.dart';
 
 class DeleteAccountWidget extends StatefulWidget {
-  const DeleteAccountWidget({super.key});
+  final int userId;
+  const DeleteAccountWidget({super.key, required this.userId});
 
   @override
   State<DeleteAccountWidget> createState() => _DeleteAccountWidgetState();
@@ -17,13 +18,12 @@ class DeleteAccountWidget extends StatefulWidget {
 
 class _DeleteAccountWidgetState extends State<DeleteAccountWidget> {
   User? user;
-  int userId = 17;
   String _selectedReason = '';
   EmailOTP myauth = EmailOTP();
 
   @override
   void initState() {
-    getDetailUser(userId);
+    getDetailUser(widget.userId);
     super.initState();
   }
 
@@ -37,9 +37,9 @@ class _DeleteAccountWidgetState extends State<DeleteAccountWidget> {
   @override
   Widget build(BuildContext context) {
     List listReason = [
-      {"name": "Tôi không muốn tiếp tục sử dụng SoundTix", "value": "do_not_continue_using"},
-      {"name": "Dịch vụ tệ", "value": "bad_service"},
-      {"name": "Lý do khác", "value": "other_reasons"},
+      {"name": AppLocalizations.of(context).translate("I do not want to continue using SoundTix"), "value": "do_not_want_to_continue_using"},
+      {"name": AppLocalizations.of(context).translate("Bad service"), "value": "bad_service"},
+      {"name": AppLocalizations.of(context).translate("Other reason"), "value": "other_reason"},
     ];
     return Consumer<ChangeThemeModel>(builder: (context, changeThemeModel, child) {
       return Scaffold(
@@ -51,7 +51,7 @@ class _DeleteAccountWidgetState extends State<DeleteAccountWidget> {
                 padding: const EdgeInsets.fromLTRB(10, 5, 10, 5),
                 child: Row(
                   children: [
-                    const ButtonBack(),
+                    const ButtonBack(isPopScreen: true),
                     const SizedBox(width: 20),
                     Text(AppLocalizations.of(context).translate("Delete account"),
                         style: const TextStyle(color: Colors.white, fontSize: 16, fontWeight: FontWeight.w500)),

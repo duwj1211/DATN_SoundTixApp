@@ -5,8 +5,9 @@ import 'package:sound_tix_view/entity/ticket.dart';
 
 class TicketItemWidget extends StatefulWidget {
   final Ticket ticket;
+  final int? quantity;
   final Function? onDelete;
-  const TicketItemWidget({super.key, required this.ticket, this.onDelete});
+  const TicketItemWidget({super.key, required this.ticket, this.quantity, this.onDelete});
 
   @override
   State<TicketItemWidget> createState() => _TicketItemWidgetState();
@@ -95,15 +96,16 @@ class _TicketItemWidgetState extends State<TicketItemWidget> {
                                 ),
                                 const SizedBox(height: 5),
                                 Row(
-                                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                                  mainAxisAlignment: (widget.quantity != null) ? MainAxisAlignment.spaceBetween : MainAxisAlignment.end,
                                   children: [
-                                    const Text(
-                                      "x1",
-                                      style: TextStyle(
-                                        fontSize: 12,
-                                        fontWeight: FontWeight.w500,
+                                    if (widget.quantity != null)
+                                      Text(
+                                        "x${widget.quantity}",
+                                        style: const TextStyle(
+                                          fontSize: 12,
+                                          fontWeight: FontWeight.w500,
+                                        ),
                                       ),
-                                    ),
                                     Text(
                                       "${widget.ticket.price}.000 VNĐ",
                                       style: const TextStyle(

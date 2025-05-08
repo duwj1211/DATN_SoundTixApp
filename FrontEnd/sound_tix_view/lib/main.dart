@@ -4,10 +4,10 @@ import 'package:go_router/go_router.dart';
 import 'package:provider/provider.dart';
 import 'package:sound_tix_view/components/localization_delegate.dart';
 import 'package:sound_tix_view/model/model.dart';
+import 'package:sound_tix_view/page/home_page/home/search_page.dart';
 import 'package:sound_tix_view/page/home_page/profile/settings/change_language.dart';
 import 'package:sound_tix_view/page/home_page/profile/settings/change_theme.dart';
 import 'package:sound_tix_view/page/home_page/profile/account/delete_account_success.dart';
-import 'package:sound_tix_view/page/home_page/profile/account/delete_account_widget.dart';
 import 'package:sound_tix_view/page/home_page/profile/support/faq_widget.dart';
 import 'package:sound_tix_view/page/home_page/profile/support/privacy_policy_widget.dart';
 import 'package:sound_tix_view/page/home_page/profile/support/terms_of_use_widget.dart';
@@ -110,6 +110,10 @@ class _MyAppState extends State<MyApp> {
           builder: (BuildContext context, GoRouterState state) => const HomePage(index: 0),
         ),
         GoRoute(
+          path: '/search-event',
+          builder: (BuildContext context, GoRouterState state) => const SearchPageWidget(),
+        ),
+        GoRoute(
           path: '/my-tickets',
           builder: (BuildContext context, GoRouterState state) => const HomePage(index: 1),
         ),
@@ -130,10 +134,6 @@ class _MyAppState extends State<MyApp> {
               builder: (BuildContext context, GoRouterState state) => const ChangeThemeWidget(),
             ),
             GoRoute(
-              path: 'delete-account',
-              builder: (BuildContext context, GoRouterState state) => const DeleteAccountWidget(),
-            ),
-            GoRoute(
               path: 'terms-of-use',
               builder: (BuildContext context, GoRouterState state) => const TermsOfUseWidget(),
             ),
@@ -148,10 +148,6 @@ class _MyAppState extends State<MyApp> {
             GoRoute(
               path: 'privacy-policy',
               builder: (BuildContext context, GoRouterState state) => const PrivacyPolicyWidget(),
-            ),
-            GoRoute(
-              path: 'delete-account',
-              builder: (BuildContext context, GoRouterState state) => const DeleteAccountWidget(),
             ),
             GoRoute(
               path: 'terms-of-use',

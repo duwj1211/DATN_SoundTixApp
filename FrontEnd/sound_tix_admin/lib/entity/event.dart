@@ -7,6 +7,9 @@ class Event {
   String location;
   String description;
   String path;
+  String organizer;
+  String organizerDescription;
+  String organizerAvatar;
 
   Event({
     this.eventId,
@@ -15,6 +18,9 @@ class Event {
     required this.location,
     required this.description,
     required this.path,
+    required this.organizer,
+    required this.organizerDescription,
+    required this.organizerAvatar,
   });
 
   Event copyWith({
@@ -24,6 +30,9 @@ class Event {
     String? location,
     String? description,
     String? path,
+    String? organizer,
+    String? organizerDescription,
+    String? organizerAvatar,
   }) {
     return Event(
       eventId: eventId ?? this.eventId,
@@ -32,6 +41,9 @@ class Event {
       location: location ?? this.location,
       description: description ?? this.description,
       path: path ?? this.path,
+      organizer: organizer ?? this.organizer,
+      organizerDescription: organizerDescription ?? this.organizerDescription,
+      organizerAvatar: organizerAvatar ?? this.organizerAvatar,
     );
   }
 
@@ -43,6 +55,9 @@ class Event {
       'location': location,
       'description': description,
       'path': path,
+      'organizer': organizer,
+      'organizerDescription': organizerDescription,
+      'organizerAvatar': organizerAvatar,
     };
   }
 
@@ -54,6 +69,9 @@ class Event {
       location: map['location'] as String,
       description: map['description'] as String,
       path: map['path'] as String,
+      organizer: map['organizer'] as String,
+      organizerDescription: map['organizerDescription'] as String,
+      organizerAvatar: map['organizerAvatar'] as String,
     );
   }
 
@@ -63,7 +81,7 @@ class Event {
 
   @override
   String toString() {
-    return 'Event(eventId: $eventId, name: $name, dateTime: $dateTime, location: $location, description: $description, path: $path)';
+    return 'Event(eventId: $eventId, name: $name, dateTime: $dateTime, location: $location, description: $description, path: $path, organizer: $organizer, organizerDescription: $organizerDescription, organizerAvatar: $organizerAvatar)';
   }
 
   @override
@@ -75,11 +93,22 @@ class Event {
         other.dateTime == dateTime &&
         other.location == location &&
         other.description == description &&
-        other.path == path;
+        other.path == path &&
+        other.organizer == organizer &&
+        other.organizerDescription == organizerDescription &&
+        other.organizerAvatar == organizerAvatar;
   }
 
   @override
   int get hashCode {
-    return eventId.hashCode ^ name.hashCode ^ dateTime.hashCode ^ location.hashCode ^ description.hashCode ^ path.hashCode;
+    return eventId.hashCode ^
+        name.hashCode ^
+        dateTime.hashCode ^
+        location.hashCode ^
+        description.hashCode ^
+        path.hashCode ^
+        organizer.hashCode ^
+        organizerDescription.hashCode ^
+        organizerAvatar.hashCode;
   }
 }
