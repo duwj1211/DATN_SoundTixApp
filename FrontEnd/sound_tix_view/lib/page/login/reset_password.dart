@@ -1,12 +1,14 @@
 import 'package:flutter/material.dart';
+import 'package:go_router/go_router.dart';
+import 'package:shared_preferences/shared_preferences.dart';
+import 'package:sound_tix_view/api.dart';
 import 'package:sound_tix_view/components/app_localizations.dart';
 import 'package:sound_tix_view/components/close_button.dart';
 import 'package:sound_tix_view/components/custom_input.dart';
 import 'package:sound_tix_view/entity/user.dart';
 
 class ResetPage extends StatefulWidget {
-  final String? email;
-  const ResetPage({super.key, this.email});
+  const ResetPage({super.key});
 
   @override
   State<ResetPage> createState() => _ResetPageState();
@@ -22,44 +24,57 @@ class _ResetPageState extends State<ResetPage> {
   bool _showInvalidPasswordMessage = false;
   bool _showEmptyPasswordError = false;
   List<User> users = [];
+  int? userId;
 
   @override
   void initState() {
-    // searchUsersAndDisplay(widget.email);
     super.initState();
+    loadUserId();
   }
 
-  // void searchUsersAndDisplay(String? email) async {
-  //   users = await searchUsers(email);
-  // }
+  Future<void> loadUserId() async {
+    final prefs = await SharedPreferences.getInstance();
+    setState(() {
+      userId = prefs.getInt('userId');
+    });
+  }
 
-  // updateUser() async {
-  //   User userData = User(passWord: _newPasswordController.text, userName: '', email: '', fullName: '');
+  updateUser() async {
+    final body = {'passWord': _newPasswordController.text};
 
-  //   await httpPatch("http://localhost:8080/user/update/${users[0].userId}", userData, headers: {'Content-Type': 'application/json; charset=UTF-8'});
+    try {
+      final response = await httpPatch(context, "http://localhost:8080/user/update/$userId", body);
 
-  //   context.go('/verified');
+      final statusCode = response['statusCode'];
 
-  //   ScaffoldMessenger.of(context).showSnackBar(
-  //     const SnackBar(
-  //       content: Text('Cập nhật mật khẩu thành công!'),
-  //       duration: Duration(seconds: 1),
-  //     ),
-  //   );
-  //   // if (response.statusCode == 200) {
-  //   //   setState(() {
-  //   //     // _isUpdated = true;
-  //   //   });
-  //   // } else {
-  //   //   // _isUpdated = false;
-  //   // }
-  // }
-
-  @override
-  void dispose() {
-    _newPasswordController.dispose();
-    _confirmPasswordController.dispose();
-    super.dispose();
+      if (statusCode == 200 && mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(
+            content: Text('Cập nhật mật khẩu thành công'),
+            duration: Duration(seconds: 1),
+          ),
+        );
+        context.go('/verified');
+      } else {
+        if (mounted) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            const SnackBar(
+              content: Text('Cập nhật mật khẩu thất bại'),
+              duration: Duration(seconds: 1),
+            ),
+          );
+        }
+      }
+    } catch (e) {
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(
+            content: Text('Đã xảy ra lỗi, vui lòng thử lại'),
+            duration: Duration(seconds: 1),
+          ),
+        );
+      }
+    }
   }
 
   void checkMatch(String value) {
@@ -87,6 +102,13 @@ class _ResetPageState extends State<ResetPage> {
 
   bool validatePasswordFields() {
     return _newPasswordController.text.isNotEmpty && _confirmPasswordController.text.isNotEmpty;
+  }
+
+  @override
+  void dispose() {
+    _newPasswordController.dispose();
+    _confirmPasswordController.dispose();
+    super.dispose();
   }
 
   @override
@@ -131,6 +153,7 @@ class _ResetPageState extends State<ResetPage> {
                       onChanged: (value) {
                         validatePassword(value);
                       },
+                      maxLines: 1,
                     ),
                     Positioned(
                       top: 15,
@@ -167,6 +190,7 @@ class _ResetPageState extends State<ResetPage> {
                           checkMatch(value);
                         });
                       },
+                      maxLines: 1,
                     ),
                     Positioned(
                       top: 15,
@@ -210,7 +234,7 @@ class _ResetPageState extends State<ResetPage> {
                     splashColor: Colors.transparent,
                     onTap: () {
                       if (isValidPassword(_newPasswordController.text) && _isMatch && validatePasswordFields()) {
-                        // updateUser();
+                        updateUser();
                       }
                     },
                     child: Container(

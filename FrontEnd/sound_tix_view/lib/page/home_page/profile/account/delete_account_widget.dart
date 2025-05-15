@@ -28,7 +28,7 @@ class _DeleteAccountWidgetState extends State<DeleteAccountWidget> {
   }
 
   getDetailUser(userId) async {
-    var response = await httpGet("http://localhost:8080/user/$userId");
+    var response = await httpGet(context, "http://localhost:8080/user/$userId");
     setState(() {
       user = User.fromMap(response["body"]);
     });
@@ -133,7 +133,7 @@ class _DeleteAccountWidgetState extends State<DeleteAccountWidget> {
               onTap: () async {
                 if (_selectedReason != '') {
                   EmailOTP.config(appEmail: "tranvandu1211bg@gmail.com", appName: "SoundTix", otpLength: 6, otpType: OTPType.numeric);
-                  if (await EmailOTP.sendOTP(email: user!.email) == true) {
+                  if (await EmailOTP.sendOTP(email: user!.email) == true && context.mounted) {
                     ScaffoldMessenger.of(context).showSnackBar(
                       SnackBar(
                         content: Text(AppLocalizations.of(context).translate("OTP has been sent")),
@@ -143,12 +143,7 @@ class _DeleteAccountWidgetState extends State<DeleteAccountWidget> {
                     Navigator.push(
                       context,
                       MaterialPageRoute(
-                        builder: (context) => OtpScreen(
-                          myauth: myauth,
-                          type: "deleteAccount",
-                          email: user!.email,
-                          userId: user!.userId,
-                        ),
+                        builder: (context) => OtpScreen(myauth: myauth, type: "deleteAccount"),
                       ),
                     );
                   } else {

@@ -48,7 +48,7 @@ class _DashboardWidgetState extends State<DashboardWidget> {
   }
 
   getDetailUser(userId) async {
-    var response = await httpGet("http://localhost:8080/user/$userId");
+    var response = await httpGet(context, "http://localhost:8080/user/$userId");
     setState(() {
       user = User.fromMap(response["body"]);
       _isLoadingUser = false;
@@ -56,7 +56,7 @@ class _DashboardWidgetState extends State<DashboardWidget> {
   }
 
   getListUsers() async {
-    var rawData = await httpPost("http://localhost:8080/user/search", {});
+    var rawData = await httpPost(context, "http://localhost:8080/user/search", {});
 
     setState(() {
       users = [];
@@ -78,7 +78,7 @@ class _DashboardWidgetState extends State<DashboardWidget> {
   }
 
   getListEvents() async {
-    var rawData = await httpPost("http://localhost:8080/event/search", {"sortByDateTimeAsc": true});
+    var rawData = await httpPost(context, "http://localhost:8080/event/search", {"sortByDateTimeAsc": true});
 
     setState(() {
       events = [];
@@ -97,7 +97,7 @@ class _DashboardWidgetState extends State<DashboardWidget> {
       _isLoadingNewUsersCurrentMonth = true;
     });
 
-    var rawData = await httpPost("http://localhost:8080/user/search", {"filterByCurrentMonth": true});
+    var rawData = await httpPost(context, "http://localhost:8080/user/search", {"filterByCurrentMonth": true});
 
     setState(() {
       newUsersCurrentMonth = [];
@@ -118,7 +118,7 @@ class _DashboardWidgetState extends State<DashboardWidget> {
       _isLoadingNewUsersPreviousMonth = true;
     });
 
-    var rawData = await httpPost("http://localhost:8080/user/search", {"filterByPreviousMonth": true});
+    var rawData = await httpPost(context, "http://localhost:8080/user/search", {"filterByPreviousMonth": true});
 
     setState(() {
       newUsersPreviousMonth = [];
@@ -134,7 +134,7 @@ class _DashboardWidgetState extends State<DashboardWidget> {
   }
 
   getListTickets() async {
-    var rawData = await httpPost("http://localhost:8080/ticket/search", {});
+    var rawData = await httpPost(context, "http://localhost:8080/ticket/search", {});
 
     setState(() {
       tickets = [];
@@ -150,7 +150,7 @@ class _DashboardWidgetState extends State<DashboardWidget> {
 
   getListArtists() async {
     var rawData =
-        await httpPost("http://localhost:8080/artist/search?page=0&size=5", {});
+        await httpPost(context, "http://localhost:8080/artist/search?page=0&size=5", {});
 
     setState(() {
       artists = [];

@@ -6,10 +6,12 @@ import 'package:go_router/go_router.dart';
 import 'package:provider/provider.dart';
 import 'package:qr_flutter/qr_flutter.dart';
 import 'package:image/image.dart' as img;
+import 'package:shared_preferences/shared_preferences.dart';
 import 'dart:io';
 import 'package:sound_tix_view/api.dart';
 import 'package:sound_tix_view/components/app_localizations.dart';
 import 'package:sound_tix_view/model/model.dart';
+import 'package:sound_tix_view/page/login/reset_password.dart';
 
 class Otp extends StatelessWidget {
   final TextEditingController otpController;
@@ -48,9 +50,7 @@ class OtpScreen extends StatefulWidget {
   final EmailOTP myauth;
   final String type;
   final dynamic registerBody;
-  final String? email;
-  final int? userId;
-  const OtpScreen({super.key, required this.myauth, required this.type, this.registerBody, this.email, this.userId});
+  const OtpScreen({super.key, required this.myauth, required this.type, this.registerBody});
   @override
   State<OtpScreen> createState() => _OtpScreenState();
 }
@@ -62,76 +62,109 @@ class _OtpScreenState extends State<OtpScreen> {
   TextEditingController otp4Controller = TextEditingController();
   TextEditingController otp5Controller = TextEditingController();
   TextEditingController otp6Controller = TextEditingController();
+  int? userId;
 
-  registerAccount(registerBody) async {
+  @override
+  void initState() {
+    super.initState();
+    loadUserId();
+  }
+
+  Future<void> loadUserId() async {
+    final prefs = await SharedPreferences.getInstance();
+    setState(() {
+      userId = prefs.getInt('userId');
+    });
+  }
+
+  registerAccount(body) async {
     try {
-      final response = await httpPost("http://localhost:8080/user/add", registerBody);
-      if (response.containsKey("body") && mounted) {
+      await httpPost(context, "http://localhost:8080/api/auth/register", body);
+
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(
+            content: Text('Đăng ký thành công.'),
+            duration: Duration(seconds: 1),
+          ),
+        );
+
+        generateAndSaveQRCode(body["qrCode"]);
+        context.go('/login');
+      }
+    } catch (e) {
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(
+            content: Text('Đã xảy ra lỗi, vui lòng thử lại.'),
+            duration: Duration(seconds: 1),
+          ),
+        );
+      }
+    }
+  }
+
+  deleteAccount() async {
+    try {
+      await httpDelete(context, "http://localhost:8080/user/delete/$userId");
+
+      if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
-            content: Text(AppLocalizations.of(context).translate('Account registration successful')),
+            content: Text(AppLocalizations.of(context).translate('Xóa tài khoản thành công')),
             duration: const Duration(seconds: 1),
           ),
         );
-        generateAndSaveQRCode(registerBody["fullName"]);
-        context.go('/login');
-      } else {
+        context.go('/delete-account-successful');
+      }
+    } catch (e) {
+      if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
-            content: Text(AppLocalizations.of(context).translate('Registration failed')),
+            content: Text(
+              e.toString().contains('Phiên đăng nhập')
+                  ? AppLocalizations.of(context).translate('Session expired. Please log in again.')
+                  : AppLocalizations.of(context).translate('Đã xảy ra lỗi, vui lòng thử lại'),
+            ),
             duration: const Duration(seconds: 1),
           ),
         );
       }
+    }
+  }
+
+  lockAccount() async {
+    try {
+      await httpPatch(context, "http://localhost:8080/user/update/$userId", {"status": "Inactive"});
+
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text(AppLocalizations.of(context).translate('Khóa tài khoản thành công')),
+            duration: const Duration(seconds: 1),
+          ),
+        );
+        context.go('/login');
+      }
     } catch (e) {
-      // print(e);
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text(
+              e.toString().contains('Phiên đăng nhập')
+                  ? AppLocalizations.of(context).translate('Session expired. Please log in again.')
+                  : AppLocalizations.of(context).translate('Đã xảy ra lỗi, vui lòng thử lại'),
+            ),
+            duration: const Duration(seconds: 1),
+          ),
+        );
+      }
     }
   }
 
-  deleteAccount(userId) async {
-    var response = await httpDelete("http://localhost:8080/user/delete/$userId");
-    if (response['statusCode'] == 200) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(
-          content: Text(AppLocalizations.of(context).translate('Account deleted successfully')),
-          duration: const Duration(seconds: 1),
-        ),
-      );
-      context.go('/delete-account-successful');
-    } else {
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(
-          content: Text(AppLocalizations.of(context).translate('Account deletion failed')),
-          duration: const Duration(seconds: 1),
-        ),
-      );
-    }
-  }
-
-  lockAccount(userId) async {
-    var response = await httpPatch("http://localhost:8080/user/update/$userId", {"status": "Inactive"});
-
-    if (response['statusCode'] == 200) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(
-          content: Text(AppLocalizations.of(context).translate('Account locked successfully')),
-          duration: const Duration(seconds: 1),
-        ),
-      );
-      context.go('/login');
-    } else {
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(
-          content: Text(AppLocalizations.of(context).translate('Account lock failed')),
-          duration: const Duration(seconds: 1),
-        ),
-      );
-    }
-  }
-
-  Future<void> generateAndSaveQRCode(fullName) async {
+  Future<void> generateAndSaveQRCode(qrCode) async {
     const qrData = 'https://www.facebook.com/duwj1211';
-    final fileName = 'qrCode_${convertFullName(fullName)}.png';
+    final fileName = qrCode;
     const outputPath = 'C:/Project/FrontEnd/sound_tix_view/images';
 
     try {
@@ -224,7 +257,7 @@ class _OtpScreenState extends State<OtpScreen> {
                             otp4Controller.text +
                             otp5Controller.text +
                             otp6Controller.text) ==
-                    true) {
+                    true && context.mounted) {
                   ScaffoldMessenger.of(context).showSnackBar(
                     SnackBar(
                       content: Text(AppLocalizations.of(context).translate("OTP is verified")),
@@ -233,14 +266,16 @@ class _OtpScreenState extends State<OtpScreen> {
                   );
                   Future.delayed(const Duration(seconds: 3), () {
                     if (widget.type == "forgotPassword") {
-                      context.go(
-                        '/reset-password/${widget.email}',
-                        extra: {"oldUrl": GoRouter.of(context).routerDelegate.currentConfiguration.matches.last.matchedLocation},
+                      Navigator.push(
+                        context,
+                        MaterialPageRoute(
+                          builder: (context) => const ResetPage(),
+                        ),
                       );
                     } else if (widget.type == "deleteAccount") {
-                      deleteAccount(widget.userId);
+                      deleteAccount();
                     } else if (widget.type == "lockAccount") {
-                      lockAccount(widget.userId);
+                      lockAccount();
                     } else {
                       registerAccount(widget.registerBody);
                     }

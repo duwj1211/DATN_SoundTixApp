@@ -183,12 +183,14 @@ class _ImportImageWidgetState extends State<ImportImageWidget> {
         widget.callbackFileName(fileName);
       });
     } catch (e) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(
-          content: Text('Tải ảnh lên thất bại.'),
-          duration: Duration(seconds: 1),
-        ),
-      );
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(
+            content: Text('Tải ảnh lên thất bại'),
+            duration: Duration(seconds: 1),
+          ),
+        );
+      }
     }
   }
 }

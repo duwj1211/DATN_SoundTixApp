@@ -1,8 +1,10 @@
 import 'package:email_otp/email_otp.dart';
 import 'package:flutter/material.dart';
+import 'package:sound_tix_view/api.dart';
 import 'package:sound_tix_view/components/app_localizations.dart';
 import 'package:sound_tix_view/components/close_button.dart';
 import 'package:sound_tix_view/components/custom_input.dart';
+import 'package:sound_tix_view/entity/user.dart';
 import 'package:sound_tix_view/page/login/verification.dart';
 
 class ForgotPage extends StatefulWidget {
@@ -13,25 +15,39 @@ class ForgotPage extends StatefulWidget {
 }
 
 class _ForgotPageState extends State<ForgotPage> {
-  final TextEditingController _emailController = TextEditingController();
+  final TextEditingController _userController = TextEditingController();
   EmailOTP myauth = EmailOTP();
-  bool _showEmailError = false;
+  List<User> users = [];
+
+  getListEvents() async {
+    var rawData = await httpPost(context, "http://localhost:8080/user/search", {"userName": _userController.text});
+
+    setState(() {
+      users = [];
+
+      for (var element in rawData["body"]["content"]) {
+        var user = User.fromMap(element);
+        users.add(user);
+      }
+    });
+    return 0;
+  }
+
+  // bool isValidEmail(String email) {
+  //   final RegExp emailRegex = RegExp(r'^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$');
+  //   return emailRegex.hasMatch(email);
+  // }
+
+  // void checkEmail(String value) {
+  //   setState(() {
+  //     _showEmailError = !isValidEmail(value);
+  //   });
+  // }
 
   @override
   void dispose() {
-    _emailController.dispose();
+    _userController.dispose();
     super.dispose();
-  }
-
-  bool isValidEmail(String email) {
-    final RegExp emailRegex = RegExp(r'^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$');
-    return emailRegex.hasMatch(email);
-  }
-
-  void checkEmail(String value) {
-    setState(() {
-      _showEmailError = !isValidEmail(value);
-    });
   }
 
   @override
@@ -65,26 +81,25 @@ class _ForgotPageState extends State<ForgotPage> {
                   style: const TextStyle(fontSize: 22, fontWeight: FontWeight.w500),
                 ),
                 const SizedBox(height: 10),
-                Text(AppLocalizations.of(context).translate("Please enter your email to receive verification code."),
+                Text(AppLocalizations.of(context).translate("Please enter your username to receive verification code."),
                     style: const TextStyle(fontSize: 16)),
                 const SizedBox(height: 25),
                 InputCustom(
-                  controller: _emailController,
-                  label: const Text("Email"),
-                  prefixIcon: const Icon(Icons.email),
-                  hintText: "Email",
+                  controller: _userController,
+                  label: const Text("Username"),
+                  prefixIcon: const Icon(Icons.person_outlined),
                   obscureText: false,
                   onChanged: (value) {
-                    checkEmail(value);
+                    setState(() {});
                   },
                 ),
-                if (_showEmailError)
-                  Column(
-                    children: [
-                      const SizedBox(height: 10),
-                      Text(AppLocalizations.of(context).translate("Invalid email address"), style: const TextStyle(color: Colors.red, fontSize: 12)),
-                    ],
-                  ),
+                // if (_showEmailError)
+                //   Column(
+                //     children: [
+                //       const SizedBox(height: 10),
+                //       Text(AppLocalizations.of(context).translate("Invalid email address"), style: const TextStyle(color: Colors.red, fontSize: 12)),
+                //     ],
+                //   ),
                 const SizedBox(height: 35),
                 Center(
                   child: InkWell(
@@ -93,9 +108,10 @@ class _ForgotPageState extends State<ForgotPage> {
                     focusColor: Colors.transparent,
                     splashColor: Colors.transparent,
                     onTap: () async {
-                      if (!_showEmailError) {
+                      await getListEvents();
+                      if (users.isNotEmpty) {
                         EmailOTP.config(appEmail: "tranvandu1211bg@gmail.com", appName: "SoundTix", otpLength: 6, otpType: OTPType.numeric);
-                        if (await EmailOTP.sendOTP(email: _emailController.text) == true) {
+                        if (await EmailOTP.sendOTP(email: users[0].email) == true && context.mounted) {
                           ScaffoldMessenger.of(context).showSnackBar(
                             SnackBar(
                               content: Text(AppLocalizations.of(context).translate("OTP has been sent")),
@@ -103,16 +119,20 @@ class _ForgotPageState extends State<ForgotPage> {
                             ),
                           );
                           Navigator.push(
-                              context,
-                              MaterialPageRoute(
-                                  builder: (context) => OtpScreen(myauth: myauth, type: "forgotPassword", email: _emailController.text)));
-                        } else {
-                          ScaffoldMessenger.of(context).showSnackBar(
-                            SnackBar(
-                              content: Text(AppLocalizations.of(context).translate("Oops, OTP send failed")),
-                              duration: const Duration(seconds: 1),
+                            context,
+                            MaterialPageRoute(
+                              builder: (context) => OtpScreen(myauth: myauth, type: "forgotPassword"),
                             ),
                           );
+                        } else {
+                          if (context.mounted) {
+                            ScaffoldMessenger.of(context).showSnackBar(
+                              SnackBar(
+                                content: Text(AppLocalizations.of(context).translate("Oops, OTP send failed")),
+                                duration: const Duration(seconds: 1),
+                              ),
+                            );
+                          }
                         }
                       }
                     },

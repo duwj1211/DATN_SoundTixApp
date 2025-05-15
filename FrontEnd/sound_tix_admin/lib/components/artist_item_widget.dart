@@ -21,7 +21,7 @@ class _ArtistItemWidgetState extends State<ArtistItemWidget> {
   }
 
   getListArtists(eventName) async {
-    var rawData = await httpPost("http://localhost:8080/artist/search", {'event': eventName});
+    var rawData = await httpPost(context, "http://localhost:8080/artist/search", {'event': eventName});
 
     setState(() {
       artists = [];

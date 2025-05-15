@@ -4,11 +4,13 @@ import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 import 'package:intl/intl.dart';
 import 'package:provider/provider.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 import 'package:sound_tix_view/api.dart';
 import 'package:sound_tix_view/components/app_localizations.dart';
 import 'package:sound_tix_view/entity/event.dart';
+import 'package:sound_tix_view/entity/user.dart';
 import 'package:sound_tix_view/model/model.dart';
-import 'package:sound_tix_view/page/organizer/organizer-center/create_event_widget.dart';
+import 'package:sound_tix_view/page/organizer/organizer-center/option/organizer_create_event_widget.dart';
 import 'package:sound_tix_view/page/organizer/root-organizer/root_organizer_page.dart';
 
 class OrganizerCenterWidget extends StatefulWidget {
@@ -27,6 +29,7 @@ class _OrganizerCenterWidgetState extends State<OrganizerCenterWidget> {
   int currentSize = 5;
   List<Event> events = [];
   var findRequestEvent = {};
+  User? user;
 
   @override
   void initState() {
@@ -35,21 +38,33 @@ class _OrganizerCenterWidgetState extends State<OrganizerCenterWidget> {
   }
 
   getInitPage() async {
+    await getDetailUser();
     await search();
     return 0;
+  }
+
+  getDetailUser() async {
+    final prefs = await SharedPreferences.getInstance();
+    final userId = prefs.getInt('userId');
+    if (mounted) {
+      var response = await httpGet(context, "http://localhost:8080/user/$userId");
+      setState(() {
+        user = User.fromMap(response["body"]);
+      });
+    }
   }
 
   search() {
     var searchRequest = {
       "name": _searchEventController.text,
-      "organizer": "Trần Văn Dự",
+      "organizer": user!.fullName,
     };
     findRequestEvent = searchRequest;
     getListEvents(currentPage, currentSize, findRequestEvent);
   }
 
   getListEvents(page, size, findRequest) async {
-    var rawData = await httpPost("http://localhost:8080/event/search?page=$page&size=$size", findRequest);
+    var rawData = await httpPost(context, "http://localhost:8080/event/search?page=$page&size=$size", findRequest);
 
     setState(() {
       events = [];
@@ -192,7 +207,7 @@ class _OrganizerCenterWidgetState extends State<OrganizerCenterWidget> {
                                 splashColor: Colors.transparent,
                                 onTap: () {
                                   context.go(
-                                    '/detail-event/${event.eventId}',
+                                    '/organizer/detail-event/${event.eventId}',
                                     extra: {"oldUrl": GoRouter.of(context).routerDelegate.currentConfiguration.matches.last.matchedLocation},
                                   );
                                 },
@@ -254,9 +269,12 @@ class _OrganizerCenterWidgetState extends State<OrganizerCenterWidget> {
                           ],
                         )
                       : Center(
-                          child: Text(
-                            AppLocalizations.of(context).translate("No events found"),
-                            style: const TextStyle(fontSize: 16),
+                          child: Padding(
+                            padding: const EdgeInsets.only(top: 10),
+                            child: Text(
+                              AppLocalizations.of(context).translate("No events found"),
+                              style: const TextStyle(fontSize: 16, fontWeight: FontWeight.w600),
+                            ),
                           ),
                         ),
                 ],

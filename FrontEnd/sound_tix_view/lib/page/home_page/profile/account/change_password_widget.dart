@@ -34,7 +34,7 @@ class _ChangePasswordWidgetState extends State<ChangePasswordWidget> {
   }
 
   getDetailUser(userId) async {
-    var response = await httpGet("http://localhost:8080/user/$userId");
+    var response = await httpGet(context, "http://localhost:8080/user/$userId");
     setState(() {
       user = User.fromMap(response["body"]);
       _isLoadingEdit = false;
@@ -45,10 +45,9 @@ class _ChangePasswordWidgetState extends State<ChangePasswordWidget> {
     dynamic userData = {
       "passWord": _newPasswordController.text,
     };
-    print(userData);
-
-    var response = await httpPatch("http://localhost:8080/user/update/${user!.userId}", userData);
-    if (response['statusCode'] == 200) {
+try {
+    await httpPatch(context, "http://localhost:8080/user/update/${user!.userId}", userData);
+    if (mounted) {
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
           content: Text(AppLocalizations.of(context).translate('Change password successful')),
@@ -57,13 +56,15 @@ class _ChangePasswordWidgetState extends State<ChangePasswordWidget> {
       );
       Navigator.pop(context);
       widget.onCompleted();
-    } else {
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(
-          content: Text(AppLocalizations.of(context).translate('Change password failed')),
-          duration: const Duration(seconds: 1),
-        ),
-      );
+    }}catch(e) {
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(
+            content: Text('Đã xảy ra lỗi, vui lòng thử lại'),
+            duration: Duration(seconds: 1),
+          ),
+        );
+      }
     }
   }
 
@@ -132,6 +133,7 @@ class _ChangePasswordWidgetState extends State<ChangePasswordWidget> {
                                     InputCustom(
                                       controller: _oldPasswordController,
                                       obscureText: isShowOldPassword,
+                                      maxLines: 1,
                                     ),
                                     Positioned(
                                       top: 15,
@@ -176,6 +178,7 @@ class _ChangePasswordWidgetState extends State<ChangePasswordWidget> {
                                     InputCustom(
                                       controller: _newPasswordController,
                                       obscureText: isShowNewPassword,
+                                      maxLines: 1,
                                     ),
                                     Positioned(
                                       top: 15,
@@ -223,6 +226,7 @@ class _ChangePasswordWidgetState extends State<ChangePasswordWidget> {
                                         });
                                       },
                                       obscureText: isShowConfirmNewPassword,
+                                      maxLines: 1,
                                     ),
                                     Positioned(
                                       top: 15,

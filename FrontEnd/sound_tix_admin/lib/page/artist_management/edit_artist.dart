@@ -38,7 +38,7 @@ class _EditArtistWidgetState extends State<EditArtistWidget> {
   }
 
   getDetailArtist(artistId) async {
-    var response = await httpGet("http://localhost:8080/artist/$artistId");
+    var response = await httpGet(context, "http://localhost:8080/artist/$artistId");
     setState(() {
       artist = Artist.fromMap(response["body"]);
       _selectedBirthDay = artist!.birthDay;
@@ -59,24 +59,27 @@ class _EditArtistWidgetState extends State<EditArtistWidget> {
       "nationality": _nationalityController.text,
       "debutDate": DateFormat('yyyy-MM-dd').format(_selectedDebut!),
     };
+    try {
+      await httpPatch(context, "http://localhost:8080/artist/update/${artist!.artistId}", eventData);
 
-    var response = await httpPatch("http://localhost:8080/artist/update/${artist!.artistId}", eventData);
-
-    if (response['statusCode'] == 200) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(
-          content: Text('Cập nhật thành công!'),
-          duration: Duration(seconds: 1),
-        ),
-      );
-      Navigator.pop(context);
-    } else {
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(
-          content: Text('Cập nhật thất bại!'),
-          duration: Duration(seconds: 1),
-        ),
-      );
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(
+            content: Text('Cập nhật thành công'),
+            duration: Duration(seconds: 1),
+          ),
+        );
+        Navigator.pop(context);
+      }
+    } catch (e) {
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(
+            content: Text('Đã xảy ra lỗi, vui lòng thử lại'),
+            duration: Duration(seconds: 1),
+          ),
+        );
+      }
     }
   }
 

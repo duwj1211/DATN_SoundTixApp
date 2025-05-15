@@ -38,7 +38,7 @@ class _IntroductionState extends State<Onboarding> {
                   children: [
                     const SizedBox(height: 80),
                     Image.asset(
-                      "images/soundtix_logo.png",
+                      "images/black_soundtix_logo.png",
                       height: 350,
                       width: 350,
                     ),

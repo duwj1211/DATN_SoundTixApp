@@ -1,10 +1,13 @@
 import 'package:flutter/material.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 import 'package:sound_tix_view/api.dart';
 import 'package:sound_tix_view/components/app_localizations.dart';
 import 'package:sound_tix_view/components/custom_input.dart';
 import 'package:sound_tix_view/components/image_picker.dart';
 import 'package:sound_tix_view/entity/artist.dart';
 import 'package:sound_tix_view/entity/event_type.dart';
+import 'package:sound_tix_view/entity/ticket.dart';
+import 'package:sound_tix_view/entity/user.dart';
 import 'package:sound_tix_view/page/organizer/root-organizer/root_organizer_page.dart';
 
 class CreateEventWidget extends StatefulWidget {
@@ -34,11 +37,36 @@ class _CreateEventWidgetState extends State<CreateEventWidget> {
   int? priceTicket;
   int? quantityTicket;
   int? selectedEventId;
+  User? user;
+  String organizer = "";
+  String organizerDescription = "";
+  String organizerAvatar = "";
+  List<Ticket> tickets = [];
 
   @override
   void initState() {
-    getListArtists();
+    getInitPage();
     super.initState();
+  }
+
+  getInitPage() async {
+    await getDetailUser();
+    await getListArtists();
+    return 0;
+  }
+
+  getDetailUser() async {
+    final prefs = await SharedPreferences.getInstance();
+    final userId = prefs.getInt('userId');
+    if (mounted) {
+      var response = await httpGet(context, "http://localhost:8080/user/$userId");
+      setState(() {
+        user = User.fromMap(response["body"]);
+        organizer = user!.fullName;
+        organizerDescription = user!.description;
+        organizerAvatar = user!.avatar;
+      });
+    }
   }
 
   addEvent() async {
@@ -52,17 +80,50 @@ class _CreateEventWidgetState extends State<CreateEventWidget> {
       "artists": [
         for (var aritst in selectedArtists) {"artistId": aritst.artistId}
       ],
-      "organizer": "Trần Văn Dự",
-      "organizerDescription": "Description hehe",
-      "organizerAvatar": "avatar.jpg",
+      "organizer": organizer,
+      "organizerDescription": organizerDescription,
+      "organizerAvatar": organizerAvatar,
     };
 
-    final response = await httpPost("http://localhost:8080/event/add", body);
+    final response = await httpPost(context, "http://localhost:8080/event/add", body);
     return response;
   }
 
+  addTicket() async {
+    final body = {
+      "name": _ticketNameController.text,
+      "detailInformation": _detailInformationController.text,
+      "price": priceTicket,
+      "quantityAvailable": quantityTicket,
+      "sold": 0,
+      "event": {"eventId": selectedEventId},
+      "qrCode": "qrCode_QrCode.png",
+    };
+
+    try {
+      await httpPost(context, "http://localhost:8080/ticket/add", body);
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(
+            content: Text('Tạo sự kiện thành công'),
+            duration: Duration(seconds: 1),
+          ),
+        );
+      }
+    } catch (e) {
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(
+            content: Text('Đã xảy ra lỗi, vui lòng thử lại'),
+            duration: Duration(seconds: 1),
+          ),
+        );
+      }
+    }
+  }
+
   getListArtists() async {
-    var rawData = await httpPost("http://localhost:8080/artist/search", {});
+    var rawData = await httpPost(context, "http://localhost:8080/artist/search", {});
 
     setState(() {
       artists = [];
@@ -70,6 +131,22 @@ class _CreateEventWidgetState extends State<CreateEventWidget> {
       for (var element in rawData["body"]["content"]) {
         var artist = Artist.fromMap(element);
         artists.add(artist);
+      }
+    });
+    return 0;
+  }
+
+  searchTicketsAndDisplay(eventId) async {
+    var rawData = await httpPost(context, "http://localhost:8080/ticket/search", {
+      "event": {"eventId": eventId}
+    });
+
+    setState(() {
+      tickets = [];
+
+      for (var element in rawData["body"]["content"]) {
+        var ticket = Ticket.fromMap(element);
+        tickets.add(ticket);
       }
     });
     return 0;
@@ -102,40 +179,6 @@ class _CreateEventWidgetState extends State<CreateEventWidget> {
         selectedArtists.add(artist);
       }
     });
-  }
-
-  addTicket() async {
-    final body = {
-      "name": _ticketNameController.text,
-      "detailInformation": _detailInformationController.text,
-      "price": priceTicket,
-      "quantityAvailable": quantityTicket,
-      "sold": 0,
-      "event": {"eventId": selectedEventId},
-      "qrCode": "qrCode_QrCode.png",
-    };
-
-    try {
-      final response = await httpPost("http://localhost:8080/ticket/add", body);
-      if (response.containsKey("body") && mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(
-            content: Text('Tạo sự kiện thành công.'),
-            duration: Duration(seconds: 1),
-          ),
-        );
-        Navigator.pop(context);
-      } else {
-        ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(
-            content: Text('Tạo sự kiện không thành công.'),
-            duration: Duration(seconds: 1),
-          ),
-        );
-      }
-    } catch (e) {
-      // print(e);
-    }
   }
 
   bool validateEventFields() {
@@ -261,7 +304,7 @@ class _CreateEventWidgetState extends State<CreateEventWidget> {
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
                     const SizedBox(height: 10),
-                    ImportImageWidget(
+                    RectangleImportImageWidget(
                       nameAvatar: "avatar.jpg",
                       callbackFileName: (newFileName) {
                         setState(() {
@@ -460,10 +503,13 @@ class _CreateEventWidgetState extends State<CreateEventWidget> {
                     focusColor: Colors.transparent,
                     splashColor: Colors.transparent,
                     onTap: validateEventFields()
-                        ? () {
+                        ? () async {
                             setState(() {
                               currentTab = "Ticket";
                             });
+                            var newEvent = await addEvent();
+                            selectedEventId = newEvent["body"]["eventId"];
+                            await searchTicketsAndDisplay(selectedEventId);
                           }
                         : null,
                     child: Container(
@@ -496,6 +542,47 @@ class _CreateEventWidgetState extends State<CreateEventWidget> {
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
+                    if (tickets.isNotEmpty)
+                      Padding(
+                        padding: const EdgeInsets.only(bottom: 10),
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            Padding(
+                              padding: const EdgeInsets.only(bottom: 10),
+                              child: Text(AppLocalizations.of(context).translate("Ticket of event"),
+                                  style: const TextStyle(fontSize: 16, fontWeight: FontWeight.w500)),
+                            ),
+                            for (Ticket ticket in tickets)
+                              Padding(
+                                padding: EdgeInsets.only(bottom: tickets.last != ticket ? 8 : 0),
+                                child: Container(
+                                  padding: const EdgeInsets.all(10),
+                                  decoration: BoxDecoration(
+                                    color: Colors.white,
+                                    borderRadius: BorderRadius.circular(6),
+                                    boxShadow: [
+                                      BoxShadow(
+                                        color: Colors.grey.shade300,
+                                        blurRadius: 1,
+                                        offset: const Offset(0, 1),
+                                        spreadRadius: 1,
+                                      ),
+                                    ],
+                                  ),
+                                  child: Row(
+                                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                                    children: [
+                                      Text(ticket.name, style: const TextStyle(fontSize: 14, fontWeight: FontWeight.w600)),
+                                      Text("${ticket.price}.000 đ",
+                                          style: const TextStyle(color: Color(0xFF2DC275), fontSize: 14, fontWeight: FontWeight.w600)),
+                                    ],
+                                  ),
+                                ),
+                              ),
+                          ],
+                        ),
+                      ),
                     const SizedBox(height: 10),
                     Padding(
                       padding: const EdgeInsets.only(bottom: 5),
@@ -565,6 +652,43 @@ class _CreateEventWidgetState extends State<CreateEventWidget> {
                         ),
                       ),
                     ),
+                    const SizedBox(height: 20),
+                    Row(
+                      mainAxisAlignment: MainAxisAlignment.center,
+                      children: [
+                        SizedBox(
+                          width: 80,
+                          child: InkWell(
+                            hoverColor: Colors.transparent,
+                            highlightColor: Colors.transparent,
+                            focusColor: Colors.transparent,
+                            splashColor: Colors.transparent,
+                            onTap: validateTicketFields()
+                                ? () async {
+                                    await addTicket();
+                                    _ticketNameController.clear();
+                                    _detailInformationController.clear();
+                                    _priceController.clear();
+                                    _quantityController.clear();
+                                    searchTicketsAndDisplay(selectedEventId);
+                                  }
+                                : null,
+                            child: Container(
+                              alignment: Alignment.center,
+                              padding: const EdgeInsets.symmetric(vertical: 8),
+                              decoration: BoxDecoration(
+                                border: Border.all(
+                                  color: validateTicketFields() ? const Color(0xFF2DC275) : Colors.grey.shade400,
+                                ),
+                                borderRadius: BorderRadius.circular(5),
+                                color: validateTicketFields() ? const Color(0xFF2DC275) : Colors.grey.shade400,
+                              ),
+                              child: const Text("Add", style: TextStyle(fontSize: 14, color: Colors.white, fontWeight: FontWeight.w500)),
+                            ),
+                          ),
+                        ),
+                      ],
+                    ),
                   ],
                 ),
               ),
@@ -604,11 +728,9 @@ class _CreateEventWidgetState extends State<CreateEventWidget> {
                     highlightColor: Colors.transparent,
                     focusColor: Colors.transparent,
                     splashColor: Colors.transparent,
-                    onTap: (validateEventFields() && validateTicketFields())
-                        ? () async {
-                            var newEvent = await addEvent();
-                            selectedEventId = newEvent["body"]["eventId"];
-                            await addTicket();
+                    onTap: tickets.isNotEmpty
+                        ? () {
+                            Navigator.pop(context);
                             widget.onSubmit();
                           }
                         : null,
@@ -617,10 +739,10 @@ class _CreateEventWidgetState extends State<CreateEventWidget> {
                       padding: const EdgeInsets.symmetric(vertical: 8),
                       decoration: BoxDecoration(
                         border: Border.all(
-                          color: (validateEventFields() && validateTicketFields()) ? const Color(0xFF2DC275) : Colors.grey.shade400,
+                          color: tickets.isNotEmpty ? const Color(0xFF2DC275) : Colors.grey.shade400,
                         ),
                         borderRadius: BorderRadius.circular(5),
-                        color: (validateEventFields() && validateTicketFields()) ? const Color(0xFF2DC275) : Colors.grey.shade400,
+                        color: tickets.isNotEmpty ? const Color(0xFF2DC275) : Colors.grey.shade400,
                       ),
                       child: const Text("Submit", style: TextStyle(fontSize: 14, color: Colors.white, fontWeight: FontWeight.w500)),
                     ),
@@ -647,6 +769,10 @@ class _CreateEventWidgetState extends State<CreateEventWidget> {
                   child: Padding(
                     padding: const EdgeInsets.symmetric(horizontal: 10),
                     child: InkWell(
+                      hoverColor: Colors.transparent,
+                      highlightColor: Colors.transparent,
+                      focusColor: Colors.transparent,
+                      splashColor: Colors.transparent,
                       onTap: () {
                         setState(() {
                           currentTab = tab["name"];

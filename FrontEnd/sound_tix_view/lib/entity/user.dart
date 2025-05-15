@@ -11,6 +11,7 @@ class User {
   DateTime birthDay;
   String sex;
   String status;
+  String description;
   String avatar;
   String qrCode;
   DateTime dateAdded;
@@ -27,6 +28,7 @@ class User {
     required this.birthDay,
     required this.sex,
     required this.status,
+    required this.description,
     required this.avatar,
     required this.qrCode,
     required this.dateAdded,
@@ -44,6 +46,7 @@ class User {
     DateTime? birthDay,
     String? sex,
     String? status,
+    String? description,
     String? avatar,
     String? qrCode,
     DateTime? dateAdded,
@@ -60,6 +63,7 @@ class User {
       birthDay: birthDay ?? this.birthDay,
       sex: sex ?? this.sex,
       status: status ?? this.status,
+      description: description ?? this.description,
       avatar: avatar ?? this.avatar,
       qrCode: qrCode ?? this.qrCode,
       dateAdded: dateAdded ?? this.dateAdded,
@@ -79,6 +83,7 @@ class User {
       'birthDay': birthDay,
       'sex': sex,
       'status': status,
+      'description': description,
       'avatar': avatar,
       'qrCode': qrCode,
       'dateAdded': dateAdded,
@@ -98,6 +103,7 @@ class User {
       birthDay: DateTime.parse(map['birthDay']),
       sex: map['sex'] as String,
       status: map['status'] as String,
+      description: map['description'] as String,
       avatar: map['avatar'] as String,
       qrCode: map['qrCode'] as String,
       dateAdded: map['dateAdded'] != null ? DateTime.parse(map['dateAdded']) : DateTime.now(),
@@ -111,7 +117,7 @@ class User {
 
   @override
   String toString() {
-    return 'User(id: $userId, userName: $userName, email: $email, phoneNumber: $phoneNumber, passWord: $passWord, fullName: $fullName, role: $role, birthDay: $birthDay, sex: $sex, status: $status, avatar: $avatar, qrCode: $qrCode, dateAdded: $dateAdded, lastUpdated: $lastUpdated)';
+    return 'User(id: $userId, userName: $userName, email: $email, phoneNumber: $phoneNumber, passWord: $passWord, fullName: $fullName, role: $role, birthDay: $birthDay, sex: $sex, status: $status, description: $description, avatar: $avatar, qrCode: $qrCode, dateAdded: $dateAdded, lastUpdated: $lastUpdated)';
   }
 
   @override
@@ -128,6 +134,7 @@ class User {
         other.birthDay == birthDay &&
         other.sex == sex &&
         other.status == status &&
+        other.description == description &&
         other.avatar == avatar &&
         other.qrCode == qrCode &&
         other.dateAdded == dateAdded &&
@@ -146,6 +153,7 @@ class User {
         birthDay.hashCode ^
         sex.hashCode ^
         status.hashCode ^
+        description.hashCode ^
         avatar.hashCode ^
         qrCode.hashCode ^
         dateAdded.hashCode ^

@@ -28,7 +28,7 @@ class _TicketItemWidgetState extends State<TicketItemWidget> {
   }
 
   getListEvents(name) async {
-    var rawData = await httpPost("http://localhost:8080/event/search", {"ticket": name});
+    var rawData = await httpPost(context, "http://localhost:8080/event/search", {"ticket": name});
 
     setState(() {
       events = [];
