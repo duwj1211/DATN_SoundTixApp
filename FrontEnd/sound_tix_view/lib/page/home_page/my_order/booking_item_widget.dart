@@ -21,10 +21,11 @@ class _BookingItemWidgetState extends State<BookingItemWidget> {
   void initState() {
     super.initState();
     getListTickets();
+    widget.booking.totalPrice = 1000;
   }
 
   getListTickets() async {
-    var rawData = await httpPost("http://localhost:8080/ticket/search", {"bookingId": widget.booking.bookingId});
+    var rawData = await httpPost(context, "http://localhost:8080/ticket/search", {"bookingId": widget.booking.bookingId});
 
     setState(() {
       tickets = [];
@@ -106,7 +107,9 @@ class _BookingItemWidgetState extends State<BookingItemWidget> {
                 ),
               ),
               Text(
-                AppLocalizations.of(context).translate("Total: totalPrice").replaceAll("{totalPrice}", widget.booking.totalPrice.toString()),
+                AppLocalizations.of(context)
+                    .translate("Total: totalPrice")
+                    .replaceAll("{totalPrice}", NumberFormat('#,###', 'vi_VN').format(widget.booking.totalPrice)),
                 style: const TextStyle(
                   fontSize: 14,
                   fontWeight: FontWeight.w500,

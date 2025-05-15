@@ -16,7 +16,6 @@ class HomePage extends StatefulWidget {
 
 class _HomePageState extends State<HomePage> {
   int currentPageIndex = 0;
-  int userId = 6;
 
   @override
   void initState() {
@@ -36,7 +35,6 @@ class _HomePageState extends State<HomePage> {
           ),
           SingleChildScrollView(
             child: MyTicketPage(
-              userId: userId,
               callbackPageIndex: (newIndex) {
                 setState(() {
                   currentPageIndex = newIndex;
@@ -44,9 +42,7 @@ class _HomePageState extends State<HomePage> {
               },
             ),
           ),
-          const SingleChildScrollView(
-            child: ProfilePage(),
-          ),
+          const ProfilePage(),
         ][currentPageIndex],
         bottomNavigationBar: NavigationBarTheme(
           data: NavigationBarThemeData(

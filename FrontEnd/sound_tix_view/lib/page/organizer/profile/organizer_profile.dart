@@ -2,10 +2,12 @@ import 'package:email_otp/email_otp.dart';
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 import 'package:provider/provider.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 import 'package:sound_tix_view/api.dart';
 import 'package:sound_tix_view/components/app_localizations.dart';
 import 'package:sound_tix_view/entity/user.dart';
 import 'package:sound_tix_view/page/home_page/profile/account/change_password_widget.dart';
+import 'package:sound_tix_view/page/home_page/profile/account/delete_account_widget.dart';
 import 'package:sound_tix_view/page/home_page/profile/edit_profile.dart';
 import 'package:sound_tix_view/page/login/verification.dart';
 import 'package:sound_tix_view/page/organizer/root-organizer/root_organizer_page.dart';
@@ -21,22 +23,54 @@ class OrganizerProfilePage extends StatefulWidget {
 
 class _OrganizerProfilePageState extends State<OrganizerProfilePage> {
   User? user;
-  int userId = 1;
   bool _isLoadingData = true;
   EmailOTP myauth = EmailOTP();
 
   @override
   void initState() {
-    getDetailUser(userId);
+    getDetailUser();
     super.initState();
   }
 
-  getDetailUser(userId) async {
-    var response = await httpGet("http://localhost:8080/user/$userId");
-    setState(() {
-      user = User.fromMap(response["body"]);
-      _isLoadingData = false;
-    });
+  getDetailUser() async {
+    final prefs = await SharedPreferences.getInstance();
+    final userId = prefs.getInt('userId');
+    if (mounted) {
+      var response = await httpGet(context, "http://localhost:8080/user/$userId");
+      setState(() {
+        user = User.fromMap(response["body"]);
+        _isLoadingData = false;
+      });
+    }
+  }
+
+  logout() async {
+    try {
+      await httpPost(context, "http://localhost:8080/api/auth/logout", {});
+
+      final prefs = await SharedPreferences.getInstance();
+      await prefs.remove('userId');
+      await prefs.remove('jwtToken');
+
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(
+            content: Text('Đăng xuất thành công.'),
+            duration: Duration(seconds: 1),
+          ),
+        );
+        context.go('/login');
+      }
+    } catch (e) {
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(
+            content: Text('Đã xảy ra lỗi, vui lòng thử lại'),
+            duration: Duration(seconds: 2),
+          ),
+        );
+      }
+    }
   }
 
   @override
@@ -45,508 +79,509 @@ class _OrganizerProfilePageState extends State<OrganizerProfilePage> {
     return Consumer<ChangeThemeModel>(builder: (context, changeThemeModel, child) {
       return RootOrganizerPage(
         currentPage: "Profile",
-        child: Center(
-          child: _isLoadingData
-              ? const CircularProgressIndicator()
-              : SingleChildScrollView(
-                  child: Container(
-                    padding: const EdgeInsets.all(10),
-                    color: changeThemeModel.isDark ? Colors.transparent : Colors.grey[200],
-                    child: Column(
-                      children: [
-                        Container(
-                          decoration: BoxDecoration(
-                            borderRadius: BorderRadius.circular(5),
-                            color: changeThemeModel.isDark ? Colors.grey[800] : Colors.white,
+        child: _isLoadingData
+            ? const Center(child: CircularProgressIndicator())
+            : Container(
+                padding: const EdgeInsets.all(10),
+                color: changeThemeModel.isDark ? Colors.transparent : Colors.grey[200],
+                child: Column(
+                  children: [
+                    Container(
+                      decoration: BoxDecoration(
+                        borderRadius: BorderRadius.circular(5),
+                        color: changeThemeModel.isDark ? Colors.grey[800] : Colors.white,
+                      ),
+                      padding: const EdgeInsets.all(10),
+                      child: Row(
+                        children: [
+                          ClipOval(
+                            child: Image.asset(
+                              "images/${user!.avatar}",
+                              height: 100,
+                              width: 100,
+                            ),
                           ),
-                          padding: const EdgeInsets.all(10),
-                          child: Row(
+                          const SizedBox(width: 20),
+                          Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
                             children: [
-                              ClipOval(
-                                child: Image.asset(
-                                  "images/${user!.avatar}",
-                                  height: 100,
-                                  width: 100,
-                                ),
+                              Text(
+                                user!.fullName,
+                                style: TextStyle(
+                                    fontSize: 18,
+                                    fontWeight: FontWeight.w500,
+                                    color: changeThemeModel.isDark ? Colors.white : const Color.fromARGB(255, 90, 90, 90)),
                               ),
-                              const SizedBox(width: 20),
-                              Column(
-                                crossAxisAlignment: CrossAxisAlignment.start,
+                              const SizedBox(height: 20),
+                              Row(
+                                mainAxisAlignment: MainAxisAlignment.center,
                                 children: [
-                                  Text(
-                                    user!.fullName,
-                                    style: TextStyle(
-                                        fontSize: 18,
-                                        fontWeight: FontWeight.w500,
-                                        color: changeThemeModel.isDark ? Colors.white : const Color.fromARGB(255, 90, 90, 90)),
-                                  ),
-                                  const SizedBox(height: 20),
-                                  Row(
-                                    mainAxisAlignment: MainAxisAlignment.center,
-                                    children: [
-                                      InkWell(
-                                        hoverColor: Colors.transparent,
-                                        highlightColor: Colors.transparent,
-                                        focusColor: Colors.transparent,
-                                        splashColor: Colors.transparent,
-                                        onTap: () {
-                                          Navigator.push(
-                                            context,
-                                            MaterialPageRoute(
-                                              builder: (context) => EditProfileWidget(
-                                                userId: user!.userId ?? 1,
-                                                onCompleted: () {
-                                                  getDetailUser(userId);
-                                                },
-                                              ),
-                                            ),
-                                          );
-                                        },
-                                        child: Container(
-                                          padding: const EdgeInsets.fromLTRB(10, 5, 10, 5),
-                                          width: localeProvider.locale.languageCode == "en" ? 70 : 90,
-                                          alignment: Alignment.center,
-                                          decoration: BoxDecoration(
-                                            borderRadius: BorderRadius.circular(8),
-                                            border: Border.all(
-                                              color: const Color(0xFF2DC275),
-                                            ),
-                                          ),
-                                          child: Text(
-                                            AppLocalizations.of(context).translate("Edit"),
-                                            style: const TextStyle(
-                                              color: Color(0xFF2DC275),
-                                              fontWeight: FontWeight.w700,
-                                            ),
-                                          ),
-                                        ),
-                                      ),
-                                      const SizedBox(width: 20),
-                                      InkWell(
-                                        hoverColor: Colors.transparent,
-                                        highlightColor: Colors.transparent,
-                                        focusColor: Colors.transparent,
-                                        splashColor: Colors.transparent,
-                                        onTap: () {
-                                          showDialog(
-                                            context: context,
-                                            builder: (BuildContext context) {
-                                              return AlertDialog(
-                                                content: Image.asset("images/${user!.qrCode}"),
-                                              );
+                                  InkWell(
+                                    hoverColor: Colors.transparent,
+                                    highlightColor: Colors.transparent,
+                                    focusColor: Colors.transparent,
+                                    splashColor: Colors.transparent,
+                                    onTap: () {
+                                      Navigator.push(
+                                        context,
+                                        MaterialPageRoute(
+                                          builder: (context) => EditProfileWidget(
+                                            onCompleted: () {
+                                              getDetailUser();
                                             },
-                                          );
-                                        },
-                                        child: Container(
-                                          alignment: Alignment.center,
-                                          padding: const EdgeInsets.fromLTRB(10, 5, 10, 5),
-                                          width: localeProvider.locale.languageCode == "en" ? 70 : 90,
-                                          decoration: BoxDecoration(
-                                            borderRadius: BorderRadius.circular(8),
-                                            border: Border.all(
-                                              color: const Color(0xFF2DC275),
-                                            ),
-                                          ),
-                                          child: Text(
-                                            AppLocalizations.of(context).translate("Share"),
-                                            style: const TextStyle(
-                                              color: Color(0xFF2DC275),
-                                              fontWeight: FontWeight.w700,
-                                            ),
                                           ),
                                         ),
+                                      );
+                                    },
+                                    child: Container(
+                                      padding: const EdgeInsets.fromLTRB(10, 5, 10, 5),
+                                      width: localeProvider.locale.languageCode == "en" ? 70 : 90,
+                                      alignment: Alignment.center,
+                                      decoration: BoxDecoration(
+                                        borderRadius: BorderRadius.circular(8),
+                                        border: Border.all(
+                                          color: const Color(0xFF2DC275),
+                                        ),
                                       ),
-                                    ],
+                                      child: Text(
+                                        AppLocalizations.of(context).translate("Edit"),
+                                        style: const TextStyle(
+                                          color: Color(0xFF2DC275),
+                                          fontWeight: FontWeight.w700,
+                                        ),
+                                      ),
+                                    ),
+                                  ),
+                                  const SizedBox(width: 20),
+                                  InkWell(
+                                    hoverColor: Colors.transparent,
+                                    highlightColor: Colors.transparent,
+                                    focusColor: Colors.transparent,
+                                    splashColor: Colors.transparent,
+                                    onTap: () {
+                                      showDialog(
+                                        context: context,
+                                        builder: (BuildContext context) {
+                                          return AlertDialog(
+                                            content: Image.asset("images/${user!.qrCode}"),
+                                          );
+                                        },
+                                      );
+                                    },
+                                    child: Container(
+                                      alignment: Alignment.center,
+                                      padding: const EdgeInsets.fromLTRB(10, 5, 10, 5),
+                                      width: localeProvider.locale.languageCode == "en" ? 70 : 90,
+                                      decoration: BoxDecoration(
+                                        borderRadius: BorderRadius.circular(8),
+                                        border: Border.all(
+                                          color: const Color(0xFF2DC275),
+                                        ),
+                                      ),
+                                      child: Text(
+                                        AppLocalizations.of(context).translate("Share"),
+                                        style: const TextStyle(
+                                          color: Color(0xFF2DC275),
+                                          fontWeight: FontWeight.w700,
+                                        ),
+                                      ),
+                                    ),
                                   ),
                                 ],
                               ),
                             ],
                           ),
-                        ),
-                        const SizedBox(height: 10),
-                        Container(
-                          decoration: BoxDecoration(
-                            borderRadius: BorderRadius.circular(5),
-                            color: changeThemeModel.isDark ? Colors.grey[800] : Colors.white,
+                        ],
+                      ),
+                    ),
+                    const SizedBox(height: 10),
+                    // Container(
+                    //   decoration: BoxDecoration(
+                    //     borderRadius: BorderRadius.circular(5),
+                    //     color: changeThemeModel.isDark ? Colors.grey[800] : Colors.white,
+                    //   ),
+                    //   padding: const EdgeInsets.all(10),
+                    //   child: Column(
+                    //     crossAxisAlignment: CrossAxisAlignment.start,
+                    //     children: [
+                    //       Text(
+                    //         AppLocalizations.of(context).translate("Link"),
+                    //         style: TextStyle(fontWeight: FontWeight.w500, fontSize: 15, color: changeThemeModel.isDark ? Colors.white : Colors.black),
+                    //       ),
+                    //       const SizedBox(height: 10),
+                    //       Container(
+                    //         padding: const EdgeInsets.fromLTRB(10, 0, 10, 0),
+                    //         child: Column(
+                    //           children: [
+                    //             InkWell(
+                    //               hoverColor: Colors.transparent,
+                    //               highlightColor: Colors.transparent,
+                    //               focusColor: Colors.transparent,
+                    //               splashColor: Colors.transparent,
+                    //               onTap: () {},
+                    //               child: Row(
+                    //                 children: [
+                    //                   const Icon(
+                    //                     Icons.facebook,
+                    //                     color: Colors.blue,
+                    //                     size: 20,
+                    //                   ),
+                    //                   const SizedBox(width: 20),
+                    //                   Text("Facebook", style: TextStyle(color: changeThemeModel.isDark ? Colors.white : Colors.black)),
+                    //                 ],
+                    //               ),
+                    //             ),
+                    //             const SizedBox(height: 10),
+                    //             InkWell(
+                    //               hoverColor: Colors.transparent,
+                    //               highlightColor: Colors.transparent,
+                    //               focusColor: Colors.transparent,
+                    //               splashColor: Colors.transparent,
+                    //               onTap: () {},
+                    //               child: Row(
+                    //                 children: [
+                    //                   const Icon(
+                    //                     Icons.telegram,
+                    //                     color: Colors.blue,
+                    //                     size: 20,
+                    //                   ),
+                    //                   const SizedBox(width: 20),
+                    //                   Text("Telegram", style: TextStyle(color: changeThemeModel.isDark ? Colors.white : Colors.black)),
+                    //                 ],
+                    //               ),
+                    //             ),
+                    //           ],
+                    //         ),
+                    //       ),
+                    //     ],
+                    //   ),
+                    // ),
+                    // const SizedBox(height: 10),
+                    Container(
+                      decoration: BoxDecoration(
+                        borderRadius: BorderRadius.circular(5),
+                        color: changeThemeModel.isDark ? Colors.grey[800] : Colors.white,
+                      ),
+                      padding: const EdgeInsets.all(10),
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Text(
+                            AppLocalizations.of(context).translate("Settings"),
+                            style: TextStyle(fontWeight: FontWeight.w500, fontSize: 15, color: changeThemeModel.isDark ? Colors.white : Colors.black),
                           ),
-                          padding: const EdgeInsets.all(10),
-                          child: Column(
-                            crossAxisAlignment: CrossAxisAlignment.start,
-                            children: [
-                              Text(
-                                AppLocalizations.of(context).translate("Link"),
-                                style: TextStyle(
-                                    fontWeight: FontWeight.w500, fontSize: 15, color: changeThemeModel.isDark ? Colors.white : Colors.black),
-                              ),
-                              const SizedBox(height: 10),
-                              Container(
-                                padding: const EdgeInsets.fromLTRB(10, 0, 10, 0),
-                                child: Column(
-                                  children: [
-                                    InkWell(
-                                      hoverColor: Colors.transparent,
-                                      highlightColor: Colors.transparent,
-                                      focusColor: Colors.transparent,
-                                      splashColor: Colors.transparent,
-                                      onTap: () {},
-                                      child: Row(
-                                        children: [
-                                          const Icon(
-                                            Icons.facebook,
-                                            color: Colors.blue,
-                                            size: 20,
-                                          ),
-                                          const SizedBox(width: 20),
-                                          Text("Facebook", style: TextStyle(color: changeThemeModel.isDark ? Colors.white : Colors.black)),
-                                        ],
+                          const SizedBox(height: 10),
+                          Container(
+                            padding: const EdgeInsets.fromLTRB(10, 0, 10, 0),
+                            child: Column(
+                              children: [
+                                InkWell(
+                                  hoverColor: Colors.transparent,
+                                  highlightColor: Colors.transparent,
+                                  focusColor: Colors.transparent,
+                                  splashColor: Colors.transparent,
+                                  onTap: () {
+                                    context.go('/profile/change-language');
+                                  },
+                                  child: Row(
+                                    children: [
+                                      const Icon(
+                                        Icons.language,
+                                        color: Color(0xFF2196F3),
+                                        size: 20,
                                       ),
-                                    ),
-                                    const SizedBox(height: 10),
-                                    InkWell(
-                                      hoverColor: Colors.transparent,
-                                      highlightColor: Colors.transparent,
-                                      focusColor: Colors.transparent,
-                                      splashColor: Colors.transparent,
-                                      onTap: () {},
-                                      child: Row(
-                                        children: [
-                                          const Icon(
-                                            Icons.telegram,
-                                            color: Colors.blue,
-                                            size: 20,
-                                          ),
-                                          const SizedBox(width: 20),
-                                          Text("Telegram", style: TextStyle(color: changeThemeModel.isDark ? Colors.white : Colors.black)),
-                                        ],
-                                      ),
-                                    ),
-                                  ],
+                                      const SizedBox(width: 20),
+                                      Text(AppLocalizations.of(context).translate("Language"),
+                                          style: TextStyle(color: changeThemeModel.isDark ? Colors.white : Colors.black)),
+                                    ],
+                                  ),
                                 ),
-                              ),
-                            ],
-                          ),
-                        ),
-                        const SizedBox(height: 10),
-                        Container(
-                          decoration: BoxDecoration(
-                            borderRadius: BorderRadius.circular(5),
-                            color: changeThemeModel.isDark ? Colors.grey[800] : Colors.white,
-                          ),
-                          padding: const EdgeInsets.all(10),
-                          child: Column(
-                            crossAxisAlignment: CrossAxisAlignment.start,
-                            children: [
-                              Text(
-                                AppLocalizations.of(context).translate("Settings"),
-                                style: TextStyle(
-                                    fontWeight: FontWeight.w500, fontSize: 15, color: changeThemeModel.isDark ? Colors.white : Colors.black),
-                              ),
-                              const SizedBox(height: 10),
-                              Container(
-                                padding: const EdgeInsets.fromLTRB(10, 0, 10, 0),
-                                child: Column(
-                                  children: [
-                                    InkWell(
-                                      hoverColor: Colors.transparent,
-                                      highlightColor: Colors.transparent,
-                                      focusColor: Colors.transparent,
-                                      splashColor: Colors.transparent,
-                                      onTap: () {
-                                        context.go('/profile/change-language');
-                                      },
-                                      child: Row(
-                                        children: [
-                                          const Icon(
-                                            Icons.language,
-                                            color: Color(0xFF2196F3),
-                                            size: 20,
-                                          ),
-                                          const SizedBox(width: 20),
-                                          Text(AppLocalizations.of(context).translate("Language"),
-                                              style: TextStyle(color: changeThemeModel.isDark ? Colors.white : Colors.black)),
-                                        ],
+                                const SizedBox(height: 10),
+                                InkWell(
+                                  hoverColor: Colors.transparent,
+                                  highlightColor: Colors.transparent,
+                                  focusColor: Colors.transparent,
+                                  splashColor: Colors.transparent,
+                                  onTap: () {
+                                    context.go('/profile/change-theme');
+                                  },
+                                  child: Row(
+                                    children: [
+                                      const Icon(
+                                        Icons.color_lens_outlined,
+                                        color: Colors.purpleAccent,
+                                        size: 20,
                                       ),
-                                    ),
-                                    const SizedBox(height: 10),
-                                    InkWell(
-                                      hoverColor: Colors.transparent,
-                                      highlightColor: Colors.transparent,
-                                      focusColor: Colors.transparent,
-                                      splashColor: Colors.transparent,
-                                      onTap: () {
-                                        context.go('/profile/change-theme');
-                                      },
-                                      child: Row(
-                                        children: [
-                                          const Icon(
-                                            Icons.color_lens_outlined,
-                                            color: Colors.purpleAccent,
-                                            size: 20,
-                                          ),
-                                          const SizedBox(width: 20),
-                                          Text(AppLocalizations.of(context).translate("Theme"),
-                                              style: TextStyle(color: changeThemeModel.isDark ? Colors.white : Colors.black)),
-                                        ],
-                                      ),
-                                    ),
-                                  ],
+                                      const SizedBox(width: 20),
+                                      Text(AppLocalizations.of(context).translate("Theme"),
+                                          style: TextStyle(color: changeThemeModel.isDark ? Colors.white : Colors.black)),
+                                    ],
+                                  ),
                                 ),
-                              ),
-                            ],
+                              ],
+                            ),
                           ),
-                        ),
-                        const SizedBox(height: 10),
-                        Container(
-                          decoration: BoxDecoration(
-                            borderRadius: BorderRadius.circular(5),
-                            color: changeThemeModel.isDark ? Colors.grey[800] : Colors.white,
+                        ],
+                      ),
+                    ),
+                    const SizedBox(height: 10),
+                    Container(
+                      decoration: BoxDecoration(
+                        borderRadius: BorderRadius.circular(5),
+                        color: changeThemeModel.isDark ? Colors.grey[800] : Colors.white,
+                      ),
+                      padding: const EdgeInsets.all(10),
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Text(
+                            AppLocalizations.of(context).translate("Support"),
+                            style: TextStyle(fontWeight: FontWeight.w500, fontSize: 15, color: changeThemeModel.isDark ? Colors.white : Colors.black),
                           ),
-                          padding: const EdgeInsets.all(10),
-                          child: Column(
-                            crossAxisAlignment: CrossAxisAlignment.start,
-                            children: [
-                              Text(
-                                AppLocalizations.of(context).translate("Support"),
-                                style: TextStyle(
-                                    fontWeight: FontWeight.w500, fontSize: 15, color: changeThemeModel.isDark ? Colors.white : Colors.black),
-                              ),
-                              const SizedBox(height: 10),
-                              Container(
-                                padding: const EdgeInsets.fromLTRB(10, 0, 10, 0),
-                                child: Column(
-                                  children: [
-                                    InkWell(
-                                      hoverColor: Colors.transparent,
-                                      highlightColor: Colors.transparent,
-                                      focusColor: Colors.transparent,
-                                      splashColor: Colors.transparent,
-                                      onTap: () {
-                                        context.go('/profile/terms-of-use');
-                                      },
-                                      child: Row(
-                                        children: [
-                                          Icon(
-                                            Icons.file_copy,
-                                            color: changeThemeModel.isDark ? Colors.white : const Color(0xFF757575),
-                                            size: 20,
-                                          ),
-                                          const SizedBox(width: 20),
-                                          Text(AppLocalizations.of(context).translate("Terms of use"),
-                                              style: TextStyle(color: changeThemeModel.isDark ? Colors.white : Colors.black)),
-                                        ],
+                          const SizedBox(height: 10),
+                          Container(
+                            padding: const EdgeInsets.fromLTRB(10, 0, 10, 0),
+                            child: Column(
+                              children: [
+                                InkWell(
+                                  hoverColor: Colors.transparent,
+                                  highlightColor: Colors.transparent,
+                                  focusColor: Colors.transparent,
+                                  splashColor: Colors.transparent,
+                                  onTap: () {
+                                    context.go('/profile/terms-of-use');
+                                  },
+                                  child: Row(
+                                    children: [
+                                      Icon(
+                                        Icons.file_copy,
+                                        color: changeThemeModel.isDark ? Colors.white : const Color(0xFF757575),
+                                        size: 20,
                                       ),
-                                    ),
-                                    const SizedBox(height: 10),
-                                    InkWell(
-                                      hoverColor: Colors.transparent,
-                                      highlightColor: Colors.transparent,
-                                      focusColor: Colors.transparent,
-                                      splashColor: Colors.transparent,
-                                      onTap: () {
-                                        context.go('/profile/faq');
-                                      },
-                                      child: Row(
-                                        children: [
-                                          const Icon(
-                                            Icons.question_answer,
-                                            color: Color(0xFFFF9800),
-                                            size: 20,
-                                          ),
-                                          const SizedBox(width: 20),
-                                          Text(AppLocalizations.of(context).translate("FAQ"),
-                                              style: TextStyle(color: changeThemeModel.isDark ? Colors.white : Colors.black)),
-                                        ],
-                                      ),
-                                    ),
-                                    const SizedBox(height: 10),
-                                    InkWell(
-                                      hoverColor: Colors.transparent,
-                                      highlightColor: Colors.transparent,
-                                      focusColor: Colors.transparent,
-                                      splashColor: Colors.transparent,
-                                      onTap: () {
-                                        context.go('/profile/contact');
-                                      },
-                                      child: Row(
-                                        children: [
-                                          const Icon(
-                                            Icons.phone,
-                                            color: Color(0xFF2DC275),
-                                            size: 20,
-                                          ),
-                                          const SizedBox(width: 20),
-                                          Text(AppLocalizations.of(context).translate("Contact"),
-                                              style: TextStyle(color: changeThemeModel.isDark ? Colors.white : Colors.black)),
-                                        ],
-                                      ),
-                                    ),
-                                    const SizedBox(height: 10),
-                                    InkWell(
-                                      hoverColor: Colors.transparent,
-                                      highlightColor: Colors.transparent,
-                                      focusColor: Colors.transparent,
-                                      splashColor: Colors.transparent,
-                                      onTap: () {
-                                        context.go('/profile/privacy-policy');
-                                      },
-                                      child: Row(
-                                        children: [
-                                          const Icon(
-                                            Icons.security,
-                                            color: Colors.blue,
-                                            size: 20,
-                                          ),
-                                          const SizedBox(width: 20),
-                                          Text(AppLocalizations.of(context).translate("Privacy policy"),
-                                              style: TextStyle(color: changeThemeModel.isDark ? Colors.white : Colors.black)),
-                                        ],
-                                      ),
-                                    ),
-                                  ],
+                                      const SizedBox(width: 20),
+                                      Text(AppLocalizations.of(context).translate("Terms of use"),
+                                          style: TextStyle(color: changeThemeModel.isDark ? Colors.white : Colors.black)),
+                                    ],
+                                  ),
                                 ),
-                              ),
-                            ],
-                          ),
-                        ),
-                        const SizedBox(height: 10),
-                        Container(
-                          decoration: BoxDecoration(
-                            borderRadius: BorderRadius.circular(5),
-                            color: changeThemeModel.isDark ? Colors.grey[800] : Colors.white,
-                          ),
-                          padding: const EdgeInsets.all(10),
-                          child: Column(
-                            crossAxisAlignment: CrossAxisAlignment.start,
-                            children: [
-                              Text(
-                                AppLocalizations.of(context).translate("Account"),
-                                style: TextStyle(
-                                    fontWeight: FontWeight.w500, fontSize: 15, color: changeThemeModel.isDark ? Colors.white : Colors.black),
-                              ),
-                              const SizedBox(height: 10),
-                              Container(
-                                padding: const EdgeInsets.fromLTRB(10, 0, 10, 0),
-                                child: Column(
-                                  children: [
-                                    InkWell(
-                                      hoverColor: Colors.transparent,
-                                      highlightColor: Colors.transparent,
-                                      focusColor: Colors.transparent,
-                                      splashColor: Colors.transparent,
-                                      onTap: () {
-                                        Navigator.push(
-                                          context,
-                                          MaterialPageRoute(
-                                            builder: (context) => ChangePasswordWidget(
-                                              userId: user!.userId ?? 1,
-                                              onCompleted: () {
-                                                getDetailUser(userId);
-                                              },
-                                            ),
-                                          ),
-                                        );
-                                      },
-                                      child: Row(
-                                        children: [
-                                          const Icon(
-                                            Icons.password_outlined,
-                                            color: Color(0xFF757575),
-                                            size: 20,
-                                          ),
-                                          const SizedBox(width: 20),
-                                          Text(AppLocalizations.of(context).translate("Change password"),
-                                              style: TextStyle(color: changeThemeModel.isDark ? Colors.white : Colors.black)),
-                                        ],
+                                const SizedBox(height: 10),
+                                InkWell(
+                                  hoverColor: Colors.transparent,
+                                  highlightColor: Colors.transparent,
+                                  focusColor: Colors.transparent,
+                                  splashColor: Colors.transparent,
+                                  onTap: () {
+                                    context.go('/profile/faq');
+                                  },
+                                  child: Row(
+                                    children: [
+                                      const Icon(
+                                        Icons.question_answer,
+                                        color: Color(0xFFFF9800),
+                                        size: 20,
                                       ),
-                                    ),
-                                    const SizedBox(height: 10),
-                                    InkWell(
-                                      hoverColor: Colors.transparent,
-                                      highlightColor: Colors.transparent,
-                                      focusColor: Colors.transparent,
-                                      splashColor: Colors.transparent,
-                                      onTap: () {
-                                        context.go('/profile/delete-account');
-                                      },
-                                      child: Row(
-                                        children: [
-                                          const Icon(
-                                            Icons.delete,
-                                            color: Colors.red,
-                                            size: 20,
-                                          ),
-                                          const SizedBox(width: 20),
-                                          Text(AppLocalizations.of(context).translate("Delete account"),
-                                              style: TextStyle(color: changeThemeModel.isDark ? Colors.white : Colors.black)),
-                                        ],
-                                      ),
-                                    ),
-                                    const SizedBox(height: 10),
-                                    InkWell(
-                                      hoverColor: Colors.transparent,
-                                      highlightColor: Colors.transparent,
-                                      focusColor: Colors.transparent,
-                                      splashColor: Colors.transparent,
-                                      onTap: () {
-                                        showConfirmDialog(changeThemeModel, "lock");
-                                      },
-                                      child: Row(
-                                        crossAxisAlignment: CrossAxisAlignment.start,
-                                        children: [
-                                          Icon(
-                                            Icons.lock,
-                                            color: changeThemeModel.isDark ? Colors.white : const Color(0xFF757575),
-                                            size: 20,
-                                          ),
-                                          const SizedBox(width: 20),
-                                          Text(
-                                            AppLocalizations.of(context).translate("Lock account"),
-                                            style: TextStyle(color: changeThemeModel.isDark ? Colors.white : Colors.black),
-                                          ),
-                                        ],
-                                      ),
-                                    ),
-                                    const SizedBox(height: 10),
-                                    InkWell(
-                                      hoverColor: Colors.transparent,
-                                      highlightColor: Colors.transparent,
-                                      focusColor: Colors.transparent,
-                                      splashColor: Colors.transparent,
-                                      onTap: () {
-                                        showConfirmDialog(changeThemeModel, "logout");
-                                      },
-                                      child: Row(
-                                        crossAxisAlignment: CrossAxisAlignment.start,
-                                        children: [
-                                          const Icon(
-                                            Icons.exit_to_app,
-                                            color: Color(0xFFF44336),
-                                            size: 20,
-                                          ),
-                                          const SizedBox(width: 20),
-                                          Text(
-                                            AppLocalizations.of(context).translate("Log out"),
-                                            style: TextStyle(color: changeThemeModel.isDark ? Colors.white : Colors.black),
-                                          ),
-                                        ],
-                                      ),
-                                    ),
-                                  ],
+                                      const SizedBox(width: 20),
+                                      Text(AppLocalizations.of(context).translate("FAQ"),
+                                          style: TextStyle(color: changeThemeModel.isDark ? Colors.white : Colors.black)),
+                                    ],
+                                  ),
                                 ),
-                              ),
-                            ],
+                                const SizedBox(height: 10),
+                                InkWell(
+                                  hoverColor: Colors.transparent,
+                                  highlightColor: Colors.transparent,
+                                  focusColor: Colors.transparent,
+                                  splashColor: Colors.transparent,
+                                  onTap: () {
+                                    context.go('/profile/contact');
+                                  },
+                                  child: Row(
+                                    children: [
+                                      const Icon(
+                                        Icons.phone,
+                                        color: Color(0xFF2DC275),
+                                        size: 20,
+                                      ),
+                                      const SizedBox(width: 20),
+                                      Text(AppLocalizations.of(context).translate("Contact"),
+                                          style: TextStyle(color: changeThemeModel.isDark ? Colors.white : Colors.black)),
+                                    ],
+                                  ),
+                                ),
+                                const SizedBox(height: 10),
+                                InkWell(
+                                  hoverColor: Colors.transparent,
+                                  highlightColor: Colors.transparent,
+                                  focusColor: Colors.transparent,
+                                  splashColor: Colors.transparent,
+                                  onTap: () {
+                                    context.go('/profile/privacy-policy');
+                                  },
+                                  child: Row(
+                                    children: [
+                                      const Icon(
+                                        Icons.security,
+                                        color: Colors.blue,
+                                        size: 20,
+                                      ),
+                                      const SizedBox(width: 20),
+                                      Text(AppLocalizations.of(context).translate("Privacy policy"),
+                                          style: TextStyle(color: changeThemeModel.isDark ? Colors.white : Colors.black)),
+                                    ],
+                                  ),
+                                ),
+                              ],
+                            ),
                           ),
-                        ),
-                        const SizedBox(height: 10),
-                        Text(
-                          AppLocalizations.of(context).translate("Version 1.1.2"),
+                        ],
+                      ),
+                    ),
+                    const SizedBox(height: 10),
+                    Container(
+                      decoration: BoxDecoration(
+                        borderRadius: BorderRadius.circular(5),
+                        color: changeThemeModel.isDark ? Colors.grey[800] : Colors.white,
+                      ),
+                      padding: const EdgeInsets.all(10),
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Text(
+                            AppLocalizations.of(context).translate("Account"),
+                            style: TextStyle(fontWeight: FontWeight.w500, fontSize: 15, color: changeThemeModel.isDark ? Colors.white : Colors.black),
+                          ),
+                          const SizedBox(height: 10),
+                          Container(
+                            padding: const EdgeInsets.fromLTRB(10, 0, 10, 0),
+                            child: Column(
+                              children: [
+                                InkWell(
+                                  hoverColor: Colors.transparent,
+                                  highlightColor: Colors.transparent,
+                                  focusColor: Colors.transparent,
+                                  splashColor: Colors.transparent,
+                                  onTap: () {
+                                    Navigator.push(
+                                      context,
+                                      MaterialPageRoute(
+                                        builder: (context) => ChangePasswordWidget(
+                                          userId: user!.userId!,
+                                          onCompleted: () {
+                                            getDetailUser();
+                                          },
+                                        ),
+                                      ),
+                                    );
+                                  },
+                                  child: Row(
+                                    children: [
+                                      const Icon(
+                                        Icons.password_outlined,
+                                        color: Color(0xFF757575),
+                                        size: 20,
+                                      ),
+                                      const SizedBox(width: 20),
+                                      Text(AppLocalizations.of(context).translate("Change password"),
+                                          style: TextStyle(color: changeThemeModel.isDark ? Colors.white : Colors.black)),
+                                    ],
+                                  ),
+                                ),
+                                const SizedBox(height: 10),
+                                InkWell(
+                                  hoverColor: Colors.transparent,
+                                  highlightColor: Colors.transparent,
+                                  focusColor: Colors.transparent,
+                                  splashColor: Colors.transparent,
+                                  onTap: () {
+                                    Navigator.push(
+                                      context,
+                                      MaterialPageRoute(
+                                        builder: (context) => DeleteAccountWidget(userId: user!.userId!),
+                                      ),
+                                    );
+                                  },
+                                  child: Row(
+                                    children: [
+                                      const Icon(
+                                        Icons.delete,
+                                        color: Colors.red,
+                                        size: 20,
+                                      ),
+                                      const SizedBox(width: 20),
+                                      Text(AppLocalizations.of(context).translate("Delete account"),
+                                          style: TextStyle(color: changeThemeModel.isDark ? Colors.white : Colors.black)),
+                                    ],
+                                  ),
+                                ),
+                                const SizedBox(height: 10),
+                                InkWell(
+                                  hoverColor: Colors.transparent,
+                                  highlightColor: Colors.transparent,
+                                  focusColor: Colors.transparent,
+                                  splashColor: Colors.transparent,
+                                  onTap: () {
+                                    showConfirmDialog(changeThemeModel, "lock");
+                                  },
+                                  child: Row(
+                                    crossAxisAlignment: CrossAxisAlignment.start,
+                                    children: [
+                                      Icon(
+                                        Icons.lock,
+                                        color: changeThemeModel.isDark ? Colors.white : const Color(0xFF757575),
+                                        size: 20,
+                                      ),
+                                      const SizedBox(width: 20),
+                                      Text(
+                                        AppLocalizations.of(context).translate("Lock account"),
+                                        style: TextStyle(color: changeThemeModel.isDark ? Colors.white : Colors.black),
+                                      ),
+                                    ],
+                                  ),
+                                ),
+                                const SizedBox(height: 10),
+                                InkWell(
+                                  hoverColor: Colors.transparent,
+                                  highlightColor: Colors.transparent,
+                                  focusColor: Colors.transparent,
+                                  splashColor: Colors.transparent,
+                                  onTap: () {
+                                    showConfirmDialog(changeThemeModel, "logout");
+                                  },
+                                  child: Row(
+                                    crossAxisAlignment: CrossAxisAlignment.start,
+                                    children: [
+                                      const Icon(
+                                        Icons.exit_to_app,
+                                        color: Color(0xFFF44336),
+                                        size: 20,
+                                      ),
+                                      const SizedBox(width: 20),
+                                      Text(
+                                        AppLocalizations.of(context).translate("Log out"),
+                                        style: TextStyle(color: changeThemeModel.isDark ? Colors.white : Colors.black),
+                                      ),
+                                    ],
+                                  ),
+                                ),
+                              ],
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
+                    const SizedBox(height: 10),
+                    Expanded(
+                      child: Padding(
+                        padding: const EdgeInsets.only(top: 10),
+                        child: Text(
+                          AppLocalizations.of(context).translate("Version 1.1"),
                           style: TextStyle(color: changeThemeModel.isDark ? Colors.white : Colors.black),
                         ),
-                      ],
+                      ),
                     ),
-                  ),
+                  ],
                 ),
-        ),
+              ),
       );
     });
   }
@@ -621,7 +656,7 @@ class _OrganizerProfilePageState extends State<OrganizerProfilePage> {
                             onTap: () async {
                               if (type == "lock") {
                                 EmailOTP.config(appEmail: "tranvandu1211bg@gmail.com", appName: "SoundTix", otpLength: 6, otpType: OTPType.numeric);
-                                if (await EmailOTP.sendOTP(email: user!.email) == true) {
+                                if (await EmailOTP.sendOTP(email: user!.email) == true && context.mounted) {
                                   ScaffoldMessenger.of(context).showSnackBar(
                                     SnackBar(
                                       content: Text(AppLocalizations.of(context).translate("OTP has been sent")),
@@ -631,12 +666,7 @@ class _OrganizerProfilePageState extends State<OrganizerProfilePage> {
                                   Navigator.push(
                                     context,
                                     MaterialPageRoute(
-                                      builder: (context) => OtpScreen(
-                                        myauth: myauth,
-                                        type: "lockAccount",
-                                        email: user!.email,
-                                        userId: user!.userId,
-                                      ),
+                                      builder: (context) => OtpScreen(myauth: myauth, type: "lockAccount"),
                                     ),
                                   );
                                 } else {
@@ -648,6 +678,10 @@ class _OrganizerProfilePageState extends State<OrganizerProfilePage> {
                                   );
                                 }
                               }
+                              if (type == "logout") {
+                                logout();
+                              }
+                              Navigator.pop(context);
                             },
                             child: Container(
                               alignment: Alignment.center,

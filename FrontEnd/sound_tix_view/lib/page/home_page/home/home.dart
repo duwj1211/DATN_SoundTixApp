@@ -27,24 +27,11 @@ class _DefaultHomePageState extends State<DefaultHomePage> {
   @override
   void initState() {
     super.initState();
-    futureEvents = getInitPage();
+    futureEvents = getListEvents(currentPage, currentSize);
   }
 
-  getInitPage() async {
-    await search();
-    return 0;
-  }
-
-  search() {
-    var searchRequest = {
-      "name": _searchEventController.text,
-    };
-    findRequestEvent = searchRequest;
-    getListEvents(currentPage, currentSize, findRequestEvent);
-  }
-
-  getListEvents(page, size, findRequest) async {
-    var rawData = await httpPost("http://localhost:8080/event/search?page=$page&size=$size", findRequest);
+  getListEvents(page, size) async {
+    var rawData = await httpPost(context, "http://localhost:8080/event/search?page=$page&size=$size", {});
 
     setState(() {
       events = [];
@@ -80,31 +67,18 @@ class _DefaultHomePageState extends State<DefaultHomePage> {
                       mainAxisAlignment: MainAxisAlignment.spaceBetween,
                       children: [
                         Image.asset("images/logo_homepage_no_bg.png", width: 100, color: Colors.white),
-                        Row(
-                          children: [
-                            InkWell(
-                              hoverColor: Colors.transparent,
-                              highlightColor: Colors.transparent,
-                              focusColor: Colors.transparent,
-                              splashColor: Colors.transparent,
-                              onTap: () {},
-                              child: const Icon(Icons.notifications, color: Colors.white, size: 22),
-                            ),
-                            const SizedBox(width: 15),
-                            InkWell(
-                              hoverColor: Colors.transparent,
-                              highlightColor: Colors.transparent,
-                              focusColor: Colors.transparent,
-                              splashColor: Colors.transparent,
-                              onTap: () {
-                                context.go(
-                                  '/search-event',
-                                  extra: {"oldUrl": GoRouter.of(context).routerDelegate.currentConfiguration.matches.last.matchedLocation},
-                                );
-                              },
-                              child: const Icon(Icons.search, color: Colors.white, size: 22),
-                            ),
-                          ],
+                        InkWell(
+                          hoverColor: Colors.transparent,
+                          highlightColor: Colors.transparent,
+                          focusColor: Colors.transparent,
+                          splashColor: Colors.transparent,
+                          onTap: () {
+                            context.go(
+                              '/search-event',
+                              extra: {"oldUrl": GoRouter.of(context).routerDelegate.currentConfiguration.matches.last.matchedLocation},
+                            );
+                          },
+                          child: const Icon(Icons.search, color: Colors.white, size: 22),
                         ),
                       ],
                     ),
@@ -242,7 +216,7 @@ class _DefaultHomePageState extends State<DefaultHomePage> {
                               onTap: () {
                                 setState(() {
                                   currentSize += 5;
-                                  getListEvents(currentPage, currentSize, findRequestEvent);
+                                  getListEvents(currentPage, currentSize);
                                 });
                               },
                               child: Container(
@@ -297,7 +271,7 @@ class _InterestedEventWidgetState extends State<InterestedEventWidget> {
   }
 
   getEvent(interestedId) async {
-    var rawData = await httpPost("http://localhost:8080/event/search", {"interestedId": interestedId});
+    var rawData = await httpPost(context, "http://localhost:8080/event/search", {"interestedId": interestedId});
 
     setState(() {
       events = [];

@@ -32,7 +32,7 @@ class _DetailPageState extends State<DetailPage> {
   }
 
   getDetailEvent(eventId) async {
-    var rawData = await httpGet("http://localhost:8080/event/$eventId");
+    var rawData = await httpGet(context, "http://localhost:8080/event/$eventId");
     setState(() {
       event = Event.fromMap(rawData["body"]);
       _isLoadingData = false;
@@ -40,7 +40,7 @@ class _DetailPageState extends State<DetailPage> {
   }
 
   searchTicketsAndDisplay(eventId) async {
-    var rawData = await httpPost("http://localhost:8080/ticket/search", {
+    var rawData = await httpPost(context, "http://localhost:8080/ticket/search", {
       "event": {"eventId": eventId}
     });
 
@@ -68,7 +68,7 @@ class _DetailPageState extends State<DetailPage> {
     return _isLoadingData
         ? const Scaffold(
             body: Center(
-              child: CircularProgressIndicator(),
+              child: SizedBox(width: 20, height: 20, child: CircularProgressIndicator()),
             ),
           )
         : Scaffold(

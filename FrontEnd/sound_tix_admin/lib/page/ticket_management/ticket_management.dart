@@ -59,7 +59,7 @@ class _TicketManagementWidgetState extends State<TicketManagementWidget> {
   }
 
   getListTickets(page, findRequest) async {
-    var rawData = await httpPost("http://localhost:8080/ticket/search?page=$page&size=10", findRequest);
+    var rawData = await httpPost(context, "http://localhost:8080/ticket/search?page=$page&size=10", findRequest);
 
     setState(() {
       tickets = [];
@@ -73,7 +73,7 @@ class _TicketManagementWidgetState extends State<TicketManagementWidget> {
   }
 
   getListEvents() async {
-    var rawData = await httpPost("http://localhost:8080/event/search", {});
+    var rawData = await httpPost(context, "http://localhost:8080/event/search", {});
 
     setState(() {
       events = [];
@@ -87,23 +87,27 @@ class _TicketManagementWidgetState extends State<TicketManagementWidget> {
   }
 
   deleteTicket(ticketId) async {
-    var response = await httpDelete("http://localhost:8080/ticket/delete/$ticketId");
-    if (response['statusCode'] == 200) {
+    try{
+    await httpDelete(context, "http://localhost:8080/ticket/delete/$ticketId");
+    if (mounted) {
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(
-          content: Text('Xóa vé thành công!'),
+          content: Text('Xóa vé thành công'),
           duration: Duration(seconds: 1),
         ),
       );
-    } else {
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(
-          content: Text('Xóa vé thất bại!'),
-          duration: Duration(seconds: 1),
-        ),
-      );
+      Navigator.pop(context);
     }
-    Navigator.pop(context);
+    }catch(e) {
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(
+            content: Text('Đã xảy ra lỗi, vui lòng thử lại'),
+            duration: Duration(seconds: 1),
+          ),
+        );
+      }
+    }
   }
 
   @override

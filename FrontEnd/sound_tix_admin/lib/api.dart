@@ -1,56 +1,108 @@
 import 'dart:convert';
+import 'package:flutter/material.dart';
 import 'package:http/http.dart' as http;
+import 'package:shared_preferences/shared_preferences.dart';
+import 'package:go_router/go_router.dart';
 
-httpGet(url) async {
-  final response = await http.get(Uri.parse('$url'));
+Future<Map<String, dynamic>> httpGet(BuildContext context, String url, {Map<String, String>? additionalHeaders}) async {
+  final prefs = await SharedPreferences.getInstance();
+  final token = prefs.getString('jwtToken');
+
+  final headers = {
+    'Content-Type': 'application/json; charset=UTF-8',
+    if (token != null) 'Authorization': 'Bearer $token',
+    if (additionalHeaders != null) ...additionalHeaders,
+  };
+
+  final response = await http.get(Uri.parse(url), headers: headers);
+  return _handleResponse(context, response);
+}
+
+Future<Map<String, dynamic>> httpPost(BuildContext context, String url, dynamic requestBody, {Map<String, String>? additionalHeaders}) async {
+  final prefs = await SharedPreferences.getInstance();
+  final token = prefs.getString('jwtToken');
+
+  final headers = {
+    'Content-Type': 'application/json; charset=UTF-8',
+    if (token != null) 'Authorization': 'Bearer $token',
+    if (additionalHeaders != null) ...additionalHeaders,
+  };
+
+  final response = await http.post(
+    Uri.parse(url),
+    headers: headers,
+    body: json.encode(requestBody),
+  );
+
+  return _handleResponse(context, response);
+}
+
+Future<Map<String, dynamic>> httpPatch(BuildContext context, String url, dynamic requestBody, {Map<String, String>? additionalHeaders}) async {
+  final prefs = await SharedPreferences.getInstance();
+  final token = prefs.getString('jwtToken');
+
+  final headers = {
+    'Content-Type': 'application/json; charset=UTF-8',
+    if (token != null) 'Authorization': 'Bearer $token',
+    if (additionalHeaders != null) ...additionalHeaders,
+  };
+
+  final response = await http.patch(
+    Uri.parse(url),
+    headers: headers,
+    body: json.encode(requestBody),
+  );
+
+  return _handleResponse(context, response);
+}
+
+Future<Map<String, dynamic>> httpDelete(BuildContext context, String url, {Map<String, String>? additionalHeaders}) async {
+  final prefs = await SharedPreferences.getInstance();
+  final token = prefs.getString('jwtToken');
+
+  final headers = {
+    'Content-Type': 'application/json; charset=UTF-8',
+    if (token != null) 'Authorization': 'Bearer $token',
+    if (additionalHeaders != null) ...additionalHeaders,
+  };
+
+  final response = await http.delete(Uri.parse(url), headers: headers);
+  return _handleResponse(context, response);
+}
+
+Future<Map<String, dynamic>> _handleResponse(BuildContext context, http.Response response) async {
+  final prefs = await SharedPreferences.getInstance();
+
   if (response.statusCode == 200) {
-    return {"header": response.headers, "body": json.decode(utf8.decode(response.bodyBytes))};
-  } else {
-    throw Exception('Failed to load data');
-  }
-}
+    final contentType = response.headers['content-type'] ?? '';
+    final body = utf8.decode(response.bodyBytes);
 
-httpPost(url, requestBody, {Map<String, String>? additionalHeaders}) async {
-  final headers = {
-    'Content-Type': 'application/json; charset=UTF-8',
-    if (additionalHeaders != null) ...additionalHeaders,
-  };
+    return {
+      'header': response.headers,
+      'body': contentType.contains('application/json') ? json.decode(body) : body,
+      'statusCode': 200,
+    };
+  } else if (response.statusCode == 403) {
+    await prefs.remove('jwtToken');
+    await prefs.remove('userId');
 
-  final response = await http.post(Uri.parse('$url'), headers: headers, body: json.encode(requestBody));
-  try {
-    if (response.statusCode == 200) {
-      return {"header": response.headers, "body": json.decode(utf8.decode(response.bodyBytes))};
+    if (context.mounted) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('Phiên đăng nhập đã hết. Vui lòng đăng nhập lại')),
+      );
+      context.go('/login');
     }
-  } catch (e) {
-    throw Exception('Failed to post data');
-  }
-}
 
-httpPatch(url, requestBody, {Map<String, String>? additionalHeaders}) async {
-  final headers = {
-    'Content-Type': 'application/json; charset=UTF-8',
-    if (additionalHeaders != null) ...additionalHeaders,
-  };
-  final response = await http.patch(Uri.parse('$url'), headers: headers, body: json.encode(requestBody));
-  try {
-    if (response.statusCode == 200) {
-      return {"header": response.headers, "body": json.decode(utf8.decode(response.bodyBytes)), "statusCode": response.statusCode};
+    throw Exception('Phiên đăng nhập đã hết. Vui lòng đăng nhập lại');
+  } else if (response.statusCode == 400) {
+    if (context.mounted) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text(response.body)),
+      );
     }
-  } catch (e) {
-    throw Exception('Failed to update data');
-  }
-}
 
-httpDelete(url, {Map<String, String>? additionalHeaders}) async {
-  final headers = {
-    'Content-Type': 'application/json; charset=UTF-8',
-    if (additionalHeaders != null) ...additionalHeaders,
-  };
-  final response = await http.delete(Uri.parse('$url'), headers: headers);
-
-  if (response.statusCode == 200) {
-    return {"header": response.headers, "statusCode": response.statusCode};
+    throw Exception('Phiên đăng nhập đã hết. Vui lòng đăng nhập lại');
   } else {
-    throw Exception('Failed to delete data');
+    throw Exception('Lỗi: ${response.statusCode} - ${response.reasonPhrase}');
   }
 }

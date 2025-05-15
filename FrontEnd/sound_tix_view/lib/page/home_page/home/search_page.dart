@@ -54,7 +54,7 @@ class _SearchPageWidgetState extends State<SearchPageWidget> {
   }
 
   getListEvents(findRequest) async {
-    var rawData = await httpPost("http://localhost:8080/event/search?page=0&size=10", findRequest);
+    var rawData = await httpPost(context, "http://localhost:8080/event/search?page=0&size=10", findRequest);
     setState(() {
       events = [];
       for (var element in rawData["body"]["content"]) {

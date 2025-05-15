@@ -37,7 +37,7 @@ class _EditTicketWidgetState extends State<EditTicketWidget> {
   }
 
   getDetailTicket(ticketId) async {
-    var response = await httpGet("http://localhost:8080/ticket/$ticketId");
+    var response = await httpGet(context, "http://localhost:8080/ticket/$ticketId");
     setState(() {
       ticket = Ticket.fromMap(response["body"]);
       _isLoadingEdit = false;
@@ -52,24 +52,27 @@ class _EditTicketWidgetState extends State<EditTicketWidget> {
       "quantityAvailable": quantityTicket,
       "event": {"eventId": selectedEventId},
     };
+    try {
+      await httpPatch(context, "http://localhost:8080/ticket/update/${ticket!.ticketId}", ticketData);
 
-    var response = await httpPatch("http://localhost:8080/ticket/update/${ticket!.ticketId}", ticketData);
-
-    if (response['statusCode'] == 200) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(
-          content: Text('Cập nhật thành công!'),
-          duration: Duration(seconds: 1),
-        ),
-      );
-      Navigator.pop(context);
-    } else {
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(
-          content: Text('Cập nhật thất bại!'),
-          duration: Duration(seconds: 1),
-        ),
-      );
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(
+            content: Text('Cập nhật thành công'),
+            duration: Duration(seconds: 1),
+          ),
+        );
+        Navigator.pop(context);
+      }
+    } catch (e) {
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(
+            content: Text('Đã xảy ra lỗi, vui lòng thử lại'),
+            duration: Duration(seconds: 1),
+          ),
+        );
+      }
     }
   }
 

@@ -71,7 +71,7 @@ class _OrderTrackerWidgetState extends State<OrderTrackerWidget> {
   }
 
   getListBookings(page, findRequest) async {
-    var rawData = await httpPost("http://localhost:8080/booking/search?page=$page&size=10", findRequest);
+    var rawData = await httpPost(context, "http://localhost:8080/booking/search?page=$page&size=10", findRequest);
 
     setState(() {
       bookings = [];
@@ -89,7 +89,7 @@ class _OrderTrackerWidgetState extends State<OrderTrackerWidget> {
   }
 
   countBookings() async {
-    var rawData = await httpPost("http://localhost:8080/booking/search", {});
+    var rawData = await httpPost(context, "http://localhost:8080/booking/search", {});
 
     setState(() {
       bookings = [];
@@ -115,7 +115,7 @@ class _OrderTrackerWidgetState extends State<OrderTrackerWidget> {
   }
 
   getDataExport() async {
-    var rawData = await httpPost("http://localhost:8080/booking/search", {});
+    var rawData = await httpPost(context, "http://localhost:8080/booking/search", {});
 
     setState(() {
       dataExport = rawData["body"]["content"];
@@ -186,20 +186,23 @@ class _OrderTrackerWidgetState extends State<OrderTrackerWidget> {
       File(filePath)
         ..createSync(recursive: true)
         ..writeAsBytesSync(excel.save()!);
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(
-          content: Text('Xuất file thành công.'),
-          duration: Duration(seconds: 1),
-        ),
-      );
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(
+            content: Text('Xuất file thành công'),
+            duration: Duration(seconds: 1),
+          ),
+        );
+      }
     } catch (e) {
-      // print(e);
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(
-          content: Text('Lỗi khi xuất file.'),
-          duration: Duration(seconds: 1),
-        ),
-      );
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(
+            content: Text('Lỗi khi xuất file'),
+            duration: Duration(seconds: 1),
+          ),
+        );
+      }
     }
   }
 
@@ -893,7 +896,7 @@ class _CusTomerNameState extends State<CusTomerName> {
   }
 
   void searchUserAndDisplay(bookingId) async {
-    var rawData = await httpPost("http://localhost:8080/user/search", {"bookingId": bookingId});
+    var rawData = await httpPost(context, "http://localhost:8080/user/search", {"bookingId": bookingId});
 
     setState(() {
       users = [];
@@ -939,7 +942,7 @@ class _PaymentMethodState extends State<PaymentMethod> {
   }
 
   void searchPaymentAndDisplay(bookingId) async {
-    var rawData = await httpPost("http://localhost:8080/payment/search", {"bookingId": bookingId});
+    var rawData = await httpPost(context, "http://localhost:8080/payment/search", {"bookingId": bookingId});
 
     setState(() {
       payments = [];
@@ -1009,7 +1012,7 @@ class _TicketCountState extends State<TicketCount> {
   }
 
   void searchTicketAndDisplay(bookingId) async {
-    var rawData = await httpPost("http://localhost:8080/ticket/search", {"bookingId": bookingId});
+    var rawData = await httpPost(context, "http://localhost:8080/ticket/search", {"bookingId": bookingId});
 
     setState(() {
       tickets = [];

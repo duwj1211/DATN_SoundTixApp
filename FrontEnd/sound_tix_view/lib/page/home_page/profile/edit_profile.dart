@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
 import 'package:provider/provider.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 import 'package:sound_tix_view/api.dart';
 import 'package:sound_tix_view/components/app_localizations.dart';
 import 'package:sound_tix_view/components/custom_input.dart';
@@ -9,9 +10,8 @@ import 'package:sound_tix_view/entity/user.dart';
 import 'package:sound_tix_view/model/model.dart';
 
 class EditProfileWidget extends StatefulWidget {
-  final int userId;
   final Function onCompleted;
-  const EditProfileWidget({super.key, required this.userId, required this.onCompleted});
+  const EditProfileWidget({super.key, required this.onCompleted});
 
   @override
   State<EditProfileWidget> createState() => _EditProfileWidgetState();
@@ -24,18 +24,31 @@ class _EditProfileWidgetState extends State<EditProfileWidget> {
   String _selectedSex = '';
   DateTime? _selectedBirthDay;
   final TextEditingController _fullNameController = TextEditingController();
-  final TextEditingController _emailController = TextEditingController();
   final TextEditingController _phoneNumberController = TextEditingController();
   final TextEditingController _birthDayController = TextEditingController();
+  int? userId;
 
   @override
   void initState() {
-    getDetailUser(widget.userId);
+    getInitPage();
     super.initState();
   }
 
-  getDetailUser(userId) async {
-    var response = await httpGet("http://localhost:8080/user/$userId");
+  getInitPage() async {
+    await loadUserId();
+    await getDetailUser();
+    return 0;
+  }
+
+  Future<void> loadUserId() async {
+    final prefs = await SharedPreferences.getInstance();
+    setState(() {
+      userId = prefs.getInt('userId');
+    });
+  }
+
+  getDetailUser() async {
+    var response = await httpGet(context, "http://localhost:8080/user/$userId");
     setState(() {
       user = User.fromMap(response["body"]);
       _selectedSex = user!.sex;
@@ -49,29 +62,37 @@ class _EditProfileWidgetState extends State<EditProfileWidget> {
     dynamic userData = {
       "birthDay": DateFormat('yyyy-MM-dd').format(_selectedBirthDay!),
       "phoneNumber": _phoneNumberController.text,
-      "email": _emailController.text,
       "fullName": _fullNameController.text,
       "sex": _selectedSex,
       "avatar": fileName
     };
 
-    var response = await httpPatch("http://localhost:8080/user/update/${user!.userId}", userData);
-    if (response['statusCode'] == 200) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(
-          content: Text(AppLocalizations.of(context).translate('Update successful')),
-          duration: const Duration(seconds: 1),
-        ),
-      );
-      Navigator.pop(context);
-      widget.onCompleted();
-    } else {
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(
-          content: Text(AppLocalizations.of(context).translate('Update failed')),
-          duration: const Duration(seconds: 1),
-        ),
-      );
+    try {
+      await httpPatch(context, "http://localhost:8080/user/update/$userId", userData);
+
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text(AppLocalizations.of(context).translate('Cập nhật tài khoản thành công')),
+            duration: const Duration(seconds: 1),
+          ),
+        );
+        Navigator.pop(context);
+        widget.onCompleted();
+      }
+    } catch (e) {
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text(
+              e.toString().contains('Phiên đăng nhập')
+                  ? AppLocalizations.of(context).translate('Session expired. Please log in again.')
+                  : AppLocalizations.of(context).translate('Đã xảy ra lỗi, vui lòng thử lại'),
+            ),
+            duration: const Duration(seconds: 1),
+          ),
+        );
+      }
     }
   }
 
@@ -98,7 +119,6 @@ class _EditProfileWidgetState extends State<EditProfileWidget> {
     setState(() {
       if (user != null) {
         _fullNameController.text = user!.fullName;
-        _emailController.text = user!.email;
         _phoneNumberController.text = user!.phoneNumber;
         if (_selectedBirthDay != null) {
           _birthDayController.text = formatDate(_selectedBirthDay!);
@@ -110,7 +130,6 @@ class _EditProfileWidgetState extends State<EditProfileWidget> {
   @override
   void dispose() {
     _fullNameController.dispose();
-    _emailController.dispose();
     _phoneNumberController.dispose();
     _birthDayController.dispose();
     super.dispose();
@@ -199,19 +218,6 @@ class _EditProfileWidgetState extends State<EditProfileWidget> {
                                   ],
                                 ),
                                 const SizedBox(height: 20),
-                                Column(
-                                  crossAxisAlignment: CrossAxisAlignment.start,
-                                  children: [
-                                    Text(
-                                      AppLocalizations.of(context).translate("Email"),
-                                      style: TextStyle(
-                                          fontSize: 16, fontWeight: FontWeight.w500, color: changeThemeModel.isDark ? Colors.white : Colors.black),
-                                    ),
-                                    const SizedBox(height: 5),
-                                    InputCustom(controller: _emailController, obscureText: false)
-                                  ],
-                                ),
-                                const SizedBox(height: 15),
                                 Column(
                                   crossAxisAlignment: CrossAxisAlignment.start,
                                   children: [

@@ -39,7 +39,7 @@ class _FilterWidgetState extends State<FilterWidget> {
   }
 
   getListEventTypes() async {
-    var rawData = await httpPost("http://localhost:8080/event-type/search", {});
+    var rawData = await httpPost(context, "http://localhost:8080/event-type/search", {});
     setState(() {
       eventTypes = [];
       for (var element in rawData["body"]["content"]) {
@@ -51,7 +51,7 @@ class _FilterWidgetState extends State<FilterWidget> {
   }
 
   getListArtists() async {
-    var rawData = await httpPost("http://localhost:8080/artist/search", {});
+    var rawData = await httpPost(context, "http://localhost:8080/artist/search", {});
     setState(() {
       artists = [];
       for (var element in rawData["body"]["content"]) {

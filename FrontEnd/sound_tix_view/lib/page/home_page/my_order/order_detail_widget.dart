@@ -35,7 +35,7 @@ class _OrderDetailWidgetState extends State<OrderDetailWidget> {
   }
 
   getListTickets() async {
-    var rawData = await httpPost("http://localhost:8080/ticket/search", {"bookingId": widget.booking.bookingId});
+    var rawData = await httpPost(context, "http://localhost:8080/ticket/search", {"bookingId": widget.booking.bookingId});
 
     setState(() {
       tickets = [];
@@ -50,7 +50,7 @@ class _OrderDetailWidgetState extends State<OrderDetailWidget> {
   }
 
   getListEvents(name) async {
-    var rawData = await httpPost("http://localhost:8080/event/search", {"ticket": name});
+    var rawData = await httpPost(context, "http://localhost:8080/event/search", {"ticket": name});
 
     setState(() {
       var event = Event.fromMap(rawData["body"]["content"][0]);
@@ -60,7 +60,7 @@ class _OrderDetailWidgetState extends State<OrderDetailWidget> {
   }
 
   getPayment() async {
-    var rawData = await httpPost("http://localhost:8080/payment/search", {"bookingId": widget.booking.bookingId});
+    var rawData = await httpPost(context, "http://localhost:8080/payment/search", {"bookingId": widget.booking.bookingId});
 
     setState(() {
       payments = [];
@@ -296,12 +296,14 @@ class _OrderDetailWidgetState extends State<OrderDetailWidget> {
     final filePath = '$selectedDirectory/Order_${widget.booking.bookingId}.pdf';
     final file = File(filePath);
     await file.writeAsBytes(await pdf.save());
-    ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(
-        content: Text(AppLocalizations.of(context).translate('Billing successful')),
-        duration: const Duration(seconds: 1),
-      ),
-    );
+    if (mounted) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text(AppLocalizations.of(context).translate('Billing successful')),
+          duration: const Duration(seconds: 1),
+        ),
+      );
+    }
   }
 
   Future<void> exportETicket() async {
@@ -358,12 +360,14 @@ class _OrderDetailWidgetState extends State<OrderDetailWidget> {
     final filePath = '$selectedDirectory/E-Ticket_${tickets[0].name}.pdf';
     final file = File(filePath);
     await file.writeAsBytes(await pdf.save());
-    ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(
-        content: Text(AppLocalizations.of(context).translate('Export e-ticket successful')),
-        duration: const Duration(seconds: 1),
-      ),
-    );
+    if (mounted) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text(AppLocalizations.of(context).translate('Export e-ticket successful')),
+          duration: const Duration(seconds: 1),
+        ),
+      );
+    }
   }
 
   Future<pw.Widget> buildTicketItemForPDF(Ticket ticket, Event event) async {

@@ -11,7 +11,6 @@ import 'package:sound_tix_view/page/home_page/profile/account/delete_account_suc
 import 'package:sound_tix_view/page/home_page/profile/support/faq_widget.dart';
 import 'package:sound_tix_view/page/home_page/profile/support/privacy_policy_widget.dart';
 import 'package:sound_tix_view/page/home_page/profile/support/terms_of_use_widget.dart';
-import 'package:sound_tix_view/page/login/reset_password.dart';
 import 'package:sound_tix_view/page/login/verified.dart';
 import 'package:sound_tix_view/page/not_found_page.dart';
 import 'package:sound_tix_view/page/book_ticket.dart';
@@ -22,6 +21,7 @@ import 'package:sound_tix_view/page/login/forgot_password.dart';
 import 'package:sound_tix_view/page/login/login.dart';
 import 'package:sound_tix_view/page/login/sign_up.dart';
 import 'package:sound_tix_view/page/onboarding.dart';
+import 'package:sound_tix_view/page/organizer/organizer-center/option/organizer_detail_event.dart';
 import 'package:sound_tix_view/page/organizer/organizer-center/organizer_center.dart';
 import 'package:sound_tix_view/page/organizer/profile/organizer_profile.dart';
 import 'package:sound_tix_view/page/organizer/report-management/report_management.dart';
@@ -101,10 +101,10 @@ class _MyAppState extends State<MyApp> {
           path: '/verified',
           builder: (BuildContext context, GoRouterState state) => const VerifiedScreen(),
         ),
-        GoRoute(
-          path: '/reset-password/:email',
-          builder: (BuildContext context, GoRouterState state) => ResetPage(email: state.pathParameters['email']),
-        ),
+        // GoRoute(
+        //   path: '/reset-password/:email',
+        //   builder: (BuildContext context, GoRouterState state) => ResetPage(email: state.pathParameters['email']),
+        // ),
         GoRoute(
           path: '/home-page',
           builder: (BuildContext context, GoRouterState state) => const HomePage(index: 0),
@@ -180,6 +180,10 @@ class _MyAppState extends State<MyApp> {
           builder: (BuildContext context, GoRouterState state) => DetailPage(id: state.pathParameters['eventId']),
         ),
         GoRoute(
+          path: '/organizer/detail-event/:eventId',
+          builder: (BuildContext context, GoRouterState state) => OrganizerDetailEventWidget(id: state.pathParameters['eventId']),
+        ),
+        GoRoute(
           path: '/pay/:eventId',
           builder: (BuildContext context, GoRouterState state) => PayPage(id: state.pathParameters['eventId']),
         ),
@@ -188,7 +192,7 @@ class _MyAppState extends State<MyApp> {
           builder: (BuildContext context, GoRouterState state) => BookPage(id: state.pathParameters['eventId']),
         ),
         GoRoute(
-          path: '/pay-ment/:selectedPayment',
+          path: '/payment/:selectedPayment',
           builder: (BuildContext context, GoRouterState state) => PaymentPage(selectedPayment: state.pathParameters['selectedPayment']),
         ),
         GoRoute(
