@@ -61,7 +61,7 @@ class _EventManagementWidgetState extends State<EventManagementWidget> {
   }
 
   getListEvent(page, findRequest) async {
-    var rawData = await httpPost("http://localhost:8080/event/search?page=$page&size=10", findRequest);
+    var rawData = await httpPost(context, "http://localhost:8080/event/search?page=$page&size=10", findRequest);
 
     setState(() {
       events = [];
@@ -74,7 +74,7 @@ class _EventManagementWidgetState extends State<EventManagementWidget> {
   }
 
   getListEventTypes() async {
-    var rawData = await httpPost("http://localhost:8080/event-type/search", {});
+    var rawData = await httpPost(context, "http://localhost:8080/event-type/search", {});
     setState(() {
       eventTypes = [];
       for (var element in rawData["body"]["content"]) {
@@ -86,7 +86,7 @@ class _EventManagementWidgetState extends State<EventManagementWidget> {
   }
 
   getListArtists() async {
-    var rawData = await httpPost("http://localhost:8080/artist/search", {});
+    var rawData = await httpPost(context, "http://localhost:8080/artist/search", {});
 
     setState(() {
       artists = [];
@@ -99,23 +99,27 @@ class _EventManagementWidgetState extends State<EventManagementWidget> {
   }
 
   deleteEvent(eventId) async {
-    var response = await httpDelete("http://localhost:8080/event/delete/$eventId");
-    if (response['statusCode'] == 200) {
+    try {
+    await httpDelete(context, "http://localhost:8080/event/delete/$eventId");
+    if (mounted) {
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(
-          content: Text('Xóa sự kiện thành công!'),
+          content: Text('Xóa sự kiện thành công'),
           duration: Duration(seconds: 1),
         ),
       );
-    } else {
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(
-          content: Text('Xóa sự kiện thất bại!'),
-          duration: Duration(seconds: 1),
-        ),
-      );
+      Navigator.pop(context);
     }
-    Navigator.pop(context);
+    } catch (e) {
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(
+            content: Text('Đã xảy ra lỗi, vui lòng thử lại'),
+            duration: Duration(seconds: 1),
+          ),
+        );
+      }
+    }
   }
 
   @override

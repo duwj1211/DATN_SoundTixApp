@@ -32,7 +32,7 @@ class _ReportManagementWidgetState extends State<ReportManagementWidget> {
   }
 
   getListEvents(page, size, findRequest) async {
-    var rawData = await httpPost("http://localhost:8080/event/search?page=$page&size=$size", findRequest);
+    var rawData = await httpPost(context, "http://localhost:8080/event/search?page=$page&size=$size", findRequest);
 
     setState(() {
       events = [];

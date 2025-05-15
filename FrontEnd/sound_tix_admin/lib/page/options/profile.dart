@@ -38,7 +38,7 @@ class _ProfileWidgetState extends State<ProfileWidget> {
   }
 
   getDetailUser(userId) async {
-    var response = await httpGet("http://localhost:8080/user/$userId");
+    var response = await httpGet(context, "http://localhost:8080/user/$userId");
     setState(() {
       user = User.fromMap(response["body"]);
       _selectedSex = user!.sex;
@@ -60,24 +60,27 @@ class _ProfileWidgetState extends State<ProfileWidget> {
       if (_selectedRole != null) "role": _selectedRole,
       if (avatarFileName != null) "avatar": avatarFileName,
     };
-
-    var response = await httpPatch("http://localhost:8080/user/update/${user!.userId}", userData);
-    if (response['statusCode'] == 200) {
+try {
+   await httpPatch(context, "http://localhost:8080/user/update/${user!.userId}", userData);
+    if (mounted) {
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(
-          content: Text('Cập nhật thành công!'),
+          content: Text('Cập nhật thành công'),
           duration: Duration(seconds: 1),
         ),
       );
       getDetailUser(user!.userId);
-    } else {
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(
-          content: Text('Cập nhật thất bại!'),
-          duration: Duration(seconds: 1),
-        ),
-      );
     }
+}catch (e) {
+  if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(
+            content: Text('Đã xảy ra lỗi, vui lòng thử lại'),
+            duration: Duration(seconds: 1),
+          ),
+        );
+      }
+}
   }
 
   setInitValue() {

@@ -42,7 +42,7 @@ class _ArtistManagementWidgetState extends State<ArtistManagementWidget> {
   }
 
   getListArtists(page, findRequest) async {
-    var rawData = await httpPost("http://localhost:8080/artist/search?page=$page&size=10", findRequest);
+    var rawData = await httpPost(context, "http://localhost:8080/artist/search?page=$page&size=10", findRequest);
 
     setState(() {
       artists = [];
@@ -57,23 +57,26 @@ class _ArtistManagementWidgetState extends State<ArtistManagementWidget> {
   }
 
   deleteArtist(artistId) async {
-    var response = await httpDelete("http://localhost:8080/artist/delete/$artistId");
-    if (response['statusCode'] == 200) {
+    try {
+    await httpDelete(context, "http://localhost:8080/artist/delete/$artistId");
+    if (mounted) {
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(
-          content: Text('Xóa nghệ sĩ thành công!'),
+          content: Text('Xóa nghệ sĩ thành công'),
           duration: Duration(seconds: 1),
         ),
-      );
-    } else {
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(
-          content: Text('Xóa nghệ sĩ thất bại!'),
-          duration: Duration(seconds: 1),
-        ),
-      );
+      );Navigator.pop(context);
     }
-    Navigator.pop(context);
+    } catch (e) {
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(
+            content: Text('Đã xảy ra lỗi, vui lòng thử lại'),
+            duration: Duration(seconds: 1),
+          ),
+        );
+      }
+    }
   }
 
   @override

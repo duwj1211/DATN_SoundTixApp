@@ -59,7 +59,7 @@ class _UserManagementWidgetState extends State<UserManagementWidget> {
   }
 
   getListUsers(int page, findRequest) async {
-    var rawData = await httpPost("http://localhost:8080/user/search?page=$page&size=10", findRequest);
+    var rawData = await httpPost(context, "http://localhost:8080/user/search?page=$page&size=10", findRequest);
     setState(() {
       users = [];
       for (var element in rawData["body"]["content"]) {
@@ -72,7 +72,7 @@ class _UserManagementWidgetState extends State<UserManagementWidget> {
   }
 
   countUsers() async {
-    var rawData = await httpPost("http://localhost:8080/user/search", {});
+    var rawData = await httpPost(context, "http://localhost:8080/user/search", {});
     setState(() {
       totalItems = rawData["body"]["totalItems"];
 
@@ -88,23 +88,26 @@ class _UserManagementWidgetState extends State<UserManagementWidget> {
   }
 
   deleteUser(userId) async {
-    var response = await httpDelete("http://localhost:8080/user/delete/$userId");
-    if (response['statusCode'] == 200) {
+    try {
+     await httpDelete(context, "http://localhost:8080/user/delete/$userId");
+    if (mounted) {
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(
-          content: Text('Xóa người dùng thành công!'),
+          content: Text('Xóa người dùng thành công'),
           duration: Duration(seconds: 1),
         ),
       );
-    } else {
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(
-          content: Text('Xóa người dùng thất bại!'),
-          duration: Duration(seconds: 1),
-        ),
-      );
+      Navigator.pop(context);
+    } }catch(e) {
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(
+            content: Text('Đã xảy ra lỗi, vui lòng thử lại'),
+            duration: Duration(seconds: 1),
+          ),
+        );
+      }
     }
-    Navigator.pop(context);
   }
 
   @override

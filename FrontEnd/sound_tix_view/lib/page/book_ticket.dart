@@ -35,7 +35,7 @@ class _BookPageState extends State<BookPage> {
   }
 
   getDetailEvent(eventId) async {
-    var rawData = await httpGet("http://localhost:8080/event/$eventId");
+    var rawData = await httpGet(context, "http://localhost:8080/event/$eventId");
     setState(() {
       event = Event.fromMap(rawData["body"]);
       _isLoadingData = false;
@@ -43,7 +43,7 @@ class _BookPageState extends State<BookPage> {
   }
 
   searchTicketsAndDisplay(eventId) async {
-    var rawData = await httpPost("http://localhost:8080/ticket/search", {
+    var rawData = await httpPost(context, "http://localhost:8080/ticket/search", {
       "event": {
         "eventId": eventId,
       }
@@ -87,7 +87,7 @@ class _BookPageState extends State<BookPage> {
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
                         Text(AppLocalizations.of(context).translate("Ticket information"),
-                            style: const TextStyle(color: Colors.grey, fontWeight: FontWeight.w700, fontSize: 18)),
+                            style: const TextStyle(fontWeight: FontWeight.w700, fontSize: 16)),
                         const SizedBox(height: 10),
                         Container(
                           padding: const EdgeInsets.all(15),
@@ -125,7 +125,7 @@ class _BookPageState extends State<BookPage> {
                           ),
                         ),
                         Text(AppLocalizations.of(context).translate("Please select ticket type"),
-                            style: const TextStyle(color: Colors.grey, fontWeight: FontWeight.w700, fontSize: 18)),
+                            style: const TextStyle(fontWeight: FontWeight.w700, fontSize: 16)),
                         const SizedBox(height: 10),
                         _isLoading
                             ? const CircularProgressIndicator()
@@ -248,7 +248,7 @@ class _BookPageState extends State<BookPage> {
                                       .replaceAll("{totalMoney}", NumberFormat('#,###', 'vi_VN').format(totalMoney))
                                   : AppLocalizations.of(context).translate("noTicketMessage"),
                               style: TextStyle(
-                                color: (totalMoney != 0) ? Colors.white : Colors.grey,
+                                color: (totalMoney != 0) ? Colors.white : Colors.grey[600],
                                 fontWeight: FontWeight.w700,
                                 fontSize: 16,
                               ),

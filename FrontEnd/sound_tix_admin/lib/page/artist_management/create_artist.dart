@@ -37,25 +37,25 @@ class _CreateArtistWidgetState extends State<CreateArtistWidget> {
     };
 
     try {
-      final response = await httpPost("http://localhost:8080/event/add", body);
-      if (response.containsKey("body") && mounted) {
+      await httpPost(context, "http://localhost:8080/event/add", body);
+      if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
           const SnackBar(
-            content: Text('Thêm sự kiện thành công.'),
+            content: Text('Thêm sự kiện thành công'),
             duration: Duration(seconds: 1),
           ),
         );
         Navigator.pop(context);
-      } else {
+      }
+    } catch (e) {
+      if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
           const SnackBar(
-            content: Text('Thêm sự kiện không thành công.'),
+            content: Text('Đã xảy ra lỗi, vui lòng thử lại'),
             duration: Duration(seconds: 1),
           ),
         );
       }
-    } catch (e) {
-      // print(e);
     }
   }
 

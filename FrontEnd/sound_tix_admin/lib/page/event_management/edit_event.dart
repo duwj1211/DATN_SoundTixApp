@@ -47,7 +47,7 @@ class _EditEventWidgetState extends State<EditEventWidget> {
   }
 
   getDetailEvent(eventId) async {
-    var response = await httpGet("http://localhost:8080/event/$eventId");
+    var response = await httpGet(context, "http://localhost:8080/event/$eventId");
     setState(() {
       event = Event.fromMap(response["body"]);
       _selectedDate = event!.dateTime;
@@ -67,29 +67,32 @@ class _EditEventWidgetState extends State<EditEventWidget> {
         for (var aritst in selectedArtists) {"artistId": aritst.artistId}
       ]
     };
+try {
+    await httpPatch(context, "http://localhost:8080/event/update/${event!.eventId}", eventData);
 
-    var response = await httpPatch("http://localhost:8080/event/update/${event!.eventId}", eventData);
-
-    if (response['statusCode'] == 200) {
+    if (mounted) {
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(
-          content: Text('Cập nhật thành công!'),
+          content: Text('Cập nhật thành công'),
           duration: Duration(seconds: 1),
         ),
       );
       Navigator.pop(context);
-    } else {
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(
-          content: Text('Cập nhật thất bại!'),
-          duration: Duration(seconds: 1),
-        ),
-      );
     }
-  }
+} catch (e) {
+  if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(
+            content: Text('Đã xảy ra lỗi, vui lòng thử lại'),
+            duration: Duration(seconds: 1),
+          ),
+        );
+      }
+}
+  } 
 
   getListEventTypes(eventId) async {
-    var rawData = await httpPost("http://localhost:8080/event-type/search", {'eventId': eventId});
+    var rawData = await httpPost(context, "http://localhost:8080/event-type/search", {'eventId': eventId});
 
     setState(() {
       eventTypes = [];
@@ -104,7 +107,7 @@ class _EditEventWidgetState extends State<EditEventWidget> {
   }
 
   getListArtists() async {
-    var rawData = await httpPost("http://localhost:8080/artist/search", {});
+    var rawData = await httpPost(context, "http://localhost:8080/artist/search", {});
 
     setState(() {
       artists = [];
@@ -119,7 +122,7 @@ class _EditEventWidgetState extends State<EditEventWidget> {
   }
 
   getSelectedArtists(eventName) async {
-    var rawData = await httpPost("http://localhost:8080/artist/search", {'event': eventName});
+    var rawData = await httpPost(context, "http://localhost:8080/artist/search", {'event': eventName});
 
     setState(() {
       selectedArtists = [];

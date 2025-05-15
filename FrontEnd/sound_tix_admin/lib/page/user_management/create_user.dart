@@ -46,25 +46,25 @@ class _AddUserWidgetState extends State<AddUserWidget> {
     };
 
     try {
-      final response = await httpPost("http://localhost:8080/user/add", body);
-      if (response.containsKey("body") && mounted) {
+      await httpPost(context, "http://localhost:8080/user/add", body);
+      if ( mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
           const SnackBar(
-            content: Text('Đăng ký thành công.'),
+            content: Text('Đăng ký thành công'),
             duration: Duration(seconds: 1),
           ),
         );
         Navigator.pop(context);
-      } else {
+      }
+    } catch (e) {
+      if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
           const SnackBar(
-            content: Text('Đăng ký không thành công.'),
+            content: Text('Đã xảy ra lỗi, vui lòng thử lại'),
             duration: Duration(seconds: 1),
           ),
         );
       }
-    } catch (e) {
-      // print(e);
     }
   }
 

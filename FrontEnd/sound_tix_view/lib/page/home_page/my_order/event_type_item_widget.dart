@@ -21,7 +21,7 @@ class _TicketEventTypeItemWidgetState extends State<TicketEventTypeItemWidget> {
   }
 
   getListEventTypes(eventId) async {
-    var rawData = await httpPost("http://localhost:8080/event-type/search", {"eventId": eventId});
+    var rawData = await httpPost(context, "http://localhost:8080/event-type/search", {"eventId": eventId});
 
     setState(() {
       eventTypes = [];

@@ -37,7 +37,7 @@ class _EditUserWidgetState extends State<EditUserWidget> {
   }
 
   getDetailUser(userId) async {
-    var response = await httpGet("http://localhost:8080/user/$userId");
+    var response = await httpGet(context, "http://localhost:8080/user/$userId");
     setState(() {
       user = User.fromMap(response["body"]);
       _selectedSex = user!.sex;
@@ -61,24 +61,27 @@ class _EditUserWidgetState extends State<EditUserWidget> {
       "status": _selectedStatus,
       "avatar": fileName
     };
+try {
+     await httpPatch(context, "http://localhost:8080/user/update/${user!.userId}", userData);
 
-    var response = await httpPatch("http://localhost:8080/user/update/${user!.userId}", userData);
-
-    if (response['statusCode'] == 200) {
+    if (mounted) {
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(
-          content: Text('Cập nhật thành công!'),
+          content: Text('Cập nhật thành công'),
           duration: Duration(seconds: 1),
         ),
       );
       Navigator.pop(context);
-    } else {
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(
-          content: Text('Cập nhật thất bại!'),
-          duration: Duration(seconds: 1),
-        ),
-      );
+    }}
+    catch(e) {
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(
+            content: Text('Đã xảy ra lỗi, vui lòng thử lại'),
+            duration: Duration(seconds: 1),
+          ),
+        );
+      }
     }
   }
 

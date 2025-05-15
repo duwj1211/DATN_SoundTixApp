@@ -23,7 +23,7 @@ class _OverViewChartWidgetState extends State<OverViewChartWidget> {
   }
 
   getListBookings() async {
-    var rawData = await httpPost("http://localhost:8080/booking/search", {});
+    var rawData = await httpPost(context, "http://localhost:8080/booking/search", {});
 
     setState(() {
       bookings = [];

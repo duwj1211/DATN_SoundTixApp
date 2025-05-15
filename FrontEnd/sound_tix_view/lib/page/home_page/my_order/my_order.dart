@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 import 'package:sound_tix_view/api.dart';
 import 'package:sound_tix_view/components/app_localizations.dart';
 import 'package:sound_tix_view/entity/booking.dart';
@@ -8,9 +9,8 @@ import 'package:sound_tix_view/page/home_page/my_order/booking_item_widget.dart'
 import 'package:sound_tix_view/page/home_page/my_order/order_detail_widget.dart';
 
 class MyTicketPage extends StatefulWidget {
-  final int userId;
   final Function callbackPageIndex;
-  const MyTicketPage({super.key, required this.userId, required this.callbackPageIndex});
+  const MyTicketPage({super.key, required this.callbackPageIndex});
 
   @override
   State<MyTicketPage> createState() => _MyTicketPageState();
@@ -25,25 +25,24 @@ class _MyTicketPageState extends State<MyTicketPage> {
   @override
   void initState() {
     super.initState();
-    futureBookings = getInitPage();
-  }
-
-  getInitPage() async {
-    await getListBookings(currentPage);
-    return 0;
+    futureBookings = getListBookings(currentPage);
   }
 
   getListBookings(page) async {
-    var rawData = await httpPost("http://localhost:8080/booking/search?page=$page&size=10", {"userId": widget.userId});
+    final prefs = await SharedPreferences.getInstance();
+    final userId = prefs.getInt('userId');
+    if (mounted) {
+      var rawData = await httpPost(context, "http://localhost:8080/booking/search?page=$page&size=10", {"userId": userId});
 
-    setState(() {
-      bookings = [];
+      setState(() {
+        bookings = [];
 
-      for (var element in rawData["body"]["content"]) {
-        var booking = Booking.fromMap(element);
-        bookings.add(booking);
-      }
-    });
+        for (var element in rawData["body"]["content"]) {
+          var booking = Booking.fromMap(element);
+          bookings.add(booking);
+        }
+      });
+    }
     return 0;
   }
 

@@ -3,7 +3,6 @@ import 'package:go_router/go_router.dart';
 import 'package:sound_tix_view/components/app_localizations.dart';
 import 'package:sound_tix_view/components/close_button.dart';
 import 'package:sound_tix_view/components/custom_input.dart';
-import 'package:sound_tix_view/components/image_picker.dart';
 
 class PaymentPage extends StatefulWidget {
   final String? selectedPayment;
@@ -42,75 +41,73 @@ class _PaymentPageState extends State<PaymentPage> {
                         child: Column(
                           children: [
                             const SizedBox(height: 10),
-                            Container(
-                              margin: const EdgeInsets.only(bottom: 30),
-                              child: Column(
-                                crossAxisAlignment: CrossAxisAlignment.start,
-                                children: [
-                                  Text(
-                                    AppLocalizations.of(context).translate("Transfer information"),
-                                    style: const TextStyle(color: Colors.grey, fontSize: 18, fontWeight: FontWeight.w700),
-                                  ),
-                                  const SizedBox(height: 10),
-                                  Container(
-                                    padding: const EdgeInsets.fromLTRB(0, 20, 0, 20),
-                                    decoration: BoxDecoration(
-                                      color: Colors.grey[300],
-                                      borderRadius: BorderRadius.circular(8),
-                                    ),
-                                    child: Column(
-                                      children: [
-                                        Image.asset(
-                                          "images/vcb-1.png",
-                                          height: 30,
-                                          width: MediaQuery.of(context).size.width,
-                                        ),
-                                        DefaultTextStyle(
-                                          style: const TextStyle(
-                                            fontSize: 16,
-                                            fontWeight: FontWeight.w700,
-                                            color: Colors.black,
-                                          ),
-                                          child: Column(
-                                            crossAxisAlignment: CrossAxisAlignment.start,
-                                            children: [
-                                              Text(AppLocalizations.of(context).translate("Bank: Vietcombank")),
-                                              const SizedBox(height: 15),
-                                              Text(AppLocalizations.of(context).translate("Account number: 1018898613")),
-                                              const SizedBox(height: 15),
-                                              Text(AppLocalizations.of(context).translate("Account owner: Công ty TNHH SoundTix")),
-                                              const SizedBox(height: 15),
-                                              Text(AppLocalizations.of(context).translate("Branch: Bac Tu Liem")),
-                                            ],
-                                          ),
-                                        ),
-                                      ],
-                                    ),
-                                  ),
-                                ],
-                              ),
-                            ),
                             Column(
-                              crossAxisAlignment: CrossAxisAlignment.center,
+                              crossAxisAlignment: CrossAxisAlignment.start,
                               children: [
                                 Text(
-                                  AppLocalizations.of(context).translate(
-                                      "   Customers please transfer money according to the information above with the content: \"Customer pays for ticket\"."),
-                                  style: const TextStyle(fontWeight: FontWeight.w500, fontSize: 16),
+                                  AppLocalizations.of(context).translate("Transfer information"),
+                                  style: const TextStyle(fontSize: 16, fontWeight: FontWeight.w700),
                                 ),
                                 const SizedBox(height: 10),
-                                Text(
-                                  AppLocalizations.of(context).translate("   Please take a screenshot and upload it here."),
-                                  style: const TextStyle(fontWeight: FontWeight.w500, fontSize: 16),
+                                Container(
+                                  padding: const EdgeInsets.fromLTRB(0, 20, 0, 20),
+                                  decoration: BoxDecoration(
+                                    color: Colors.grey[300],
+                                    borderRadius: BorderRadius.circular(8),
+                                  ),
+                                  child: Column(
+                                    children: [
+                                      Image.asset(
+                                        "images/vcb-1.png",
+                                        height: 30,
+                                        width: MediaQuery.of(context).size.width,
+                                      ),
+                                      const SizedBox(height: 10),
+                                      DefaultTextStyle(
+                                        style: const TextStyle(
+                                          fontSize: 16,
+                                          fontWeight: FontWeight.w700,
+                                          color: Colors.black,
+                                        ),
+                                        child: Column(
+                                          crossAxisAlignment: CrossAxisAlignment.start,
+                                          children: [
+                                            Text(AppLocalizations.of(context).translate("Bank: Vietcombank")),
+                                            const SizedBox(height: 15),
+                                            Text(AppLocalizations.of(context).translate("Account number: 1018898613")),
+                                            const SizedBox(height: 15),
+                                            Text(AppLocalizations.of(context).translate("Account owner: Công ty TNHH SoundTix")),
+                                            const SizedBox(height: 15),
+                                            Text(AppLocalizations.of(context).translate("Branch: Bac Tu Liem")),
+                                          ],
+                                        ),
+                                      ),
+                                    ],
+                                  ),
                                 ),
-                                const SizedBox(height: 30),
-                                ImportImageWidget(
-                                    nameAvatar: "avatar.jpg",
-                                    callbackFileName: (newFileName) {
-                                      setState(() {
-                                        payFileName = newFileName;
-                                      });
-                                    }),
+                                const SizedBox(height: 10),
+                                Row(
+                                  mainAxisAlignment: MainAxisAlignment.center,
+                                  children: [
+                                    Text(
+                                      AppLocalizations.of(context).translate("Or"),
+                                      style: const TextStyle(fontWeight: FontWeight.w700, fontSize: 16),
+                                    ),
+                                  ],
+                                ),
+                                const SizedBox(height: 10),
+                                Container(
+                                  padding: const EdgeInsets.fromLTRB(0, 20, 0, 20),
+                                  decoration: BoxDecoration(
+                                    color: Colors.grey[300],
+                                    borderRadius: BorderRadius.circular(8),
+                                  ),
+                                  child: Image.asset(
+                                    "images/vietcombank_qrcode.png",
+                                    width: MediaQuery.of(context).size.width,
+                                    height: 150,
+                                  ),
+                                ),
                               ],
                             ),
                           ],
@@ -235,7 +232,6 @@ class _PaymentPageState extends State<PaymentPage> {
                               ],
                             ),
                           ),
-            const SizedBox(height: 60),
           ],
         ),
       ),

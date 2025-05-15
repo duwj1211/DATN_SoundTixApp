@@ -1,5 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
+import 'package:shared_preferences/shared_preferences.dart';
+import 'package:sound_tix_view/api.dart';
 import 'package:sound_tix_view/components/app_localizations.dart';
 import 'package:sound_tix_view/components/custom_input.dart';
 
@@ -14,6 +16,69 @@ class _LoginPageState extends State<LoginPage> {
   final TextEditingController _usernameController = TextEditingController();
   final TextEditingController _passwordController = TextEditingController();
   bool isShow = true;
+
+  login() async {
+    final body = {
+      'userName': _usernameController.text,
+      'passWord': _passwordController.text,
+    };
+
+    try {
+      final response = await httpPost(context, "http://localhost:8080/api/auth/login", body);
+
+      final responseBody = response['body'];
+      final statusCode = response['statusCode'];
+
+      if (statusCode == 200 && responseBody is Map<String, dynamic> && mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(
+            content: Text('Đăng nhập thành công'),
+            duration: Duration(seconds: 1),
+          ),
+        );
+
+        final userId = responseBody['userId'];
+        final token = responseBody['token'];
+        final role = responseBody['role'];
+
+        final prefs = await SharedPreferences.getInstance();
+        await prefs.setInt('userId', userId);
+        await prefs.setString('jwtToken', token);
+        await prefs.setString('role', role);
+
+        if (mounted) {
+          switch (role) {
+            case "Administrator":
+              context.go('/admin-center');
+              break;
+            case "Organizer":
+              context.go('/organizer-center');
+              break;
+            default:
+              context.go('/home-page');
+          }
+        }
+      } else {
+        if (mounted) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            const SnackBar(
+              content: Text('Đăng nhập không thành công'),
+              duration: Duration(seconds: 1),
+            ),
+          );
+        }
+      }
+    } catch (e) {
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(
+            content: Text('Thất bại, vui lòng đăng nhập lại'),
+            duration: Duration(seconds: 1),
+          ),
+        );
+      }
+    }
+  }
 
   @override
   void dispose() {
@@ -64,7 +129,6 @@ class _LoginPageState extends State<LoginPage> {
                           controller: _usernameController,
                           label: Text(AppLocalizations.of(context).translate("Username")),
                           prefixIcon: const Icon(Icons.person_outlined),
-                          hintText: AppLocalizations.of(context).translate("Enter your username"),
                           obscureText: false,
                           onChanged: (newValue) {
                             setState(() {});
@@ -77,7 +141,6 @@ class _LoginPageState extends State<LoginPage> {
                               controller: _passwordController,
                               label: Text(AppLocalizations.of(context).translate("Password")),
                               prefixIcon: const Icon(Icons.lock_outlined),
-                              hintText: AppLocalizations.of(context).translate("Enter your password"),
                               obscureText: isShow,
                               maxLines: 1,
                             ),
@@ -127,17 +190,7 @@ class _LoginPageState extends State<LoginPage> {
                             focusColor: Colors.transparent,
                             splashColor: Colors.transparent,
                             onTap: () {
-                              if (_usernameController.text == "Organizer") {
-                                context.go('/organizer-center');
-                              } else {
-                                context.go('/home-page');
-                              }
-                              ScaffoldMessenger.of(context).showSnackBar(
-                                const SnackBar(
-                                  content: Text('Đăng nhập thành công.'),
-                                  duration: Duration(seconds: 1),
-                                ),
-                              );
+                              login();
                             },
                             child: Container(
                               alignment: Alignment.center,

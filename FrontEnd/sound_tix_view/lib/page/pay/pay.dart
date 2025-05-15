@@ -27,7 +27,7 @@ class _PayPageState extends State<PayPage> {
   }
 
   getDetailEvent(eventId) async {
-    var rawData = await httpGet("http://localhost:8080/event/$eventId");
+    var rawData = await httpGet(context, "http://localhost:8080/event/$eventId");
     setState(() {
       event = Event.fromMap(rawData["body"]);
       _isLoadingData = false;
@@ -62,7 +62,7 @@ class _PayPageState extends State<PayPage> {
                       const SizedBox(height: 30),
                       Text(
                         AppLocalizations.of(context).translate("Ticket information"),
-                        style: const TextStyle(color: Colors.grey, fontWeight: FontWeight.w700, fontSize: 18),
+                        style: const TextStyle(fontWeight: FontWeight.w700, fontSize: 16),
                       ),
                       const SizedBox(height: 10),
                       Container(
@@ -110,7 +110,7 @@ class _PayPageState extends State<PayPage> {
                         children: [
                           Text(
                             AppLocalizations.of(context).translate("Payment method"),
-                            style: const TextStyle(color: Colors.grey, fontWeight: FontWeight.w700, fontSize: 18),
+                            style: const TextStyle(fontWeight: FontWeight.w700, fontSize: 16),
                           ),
                           const SizedBox(height: 10),
                           Container(
@@ -126,7 +126,7 @@ class _PayPageState extends State<PayPage> {
                                   title: Row(
                                     children: [
                                       const Icon(
-                                        Icons.home,
+                                        Icons.account_balance,
                                         color: Color(0xFF2DC275),
                                       ),
                                       const SizedBox(width: 10),
@@ -239,20 +239,21 @@ class _PayPageState extends State<PayPage> {
                       splashColor: Colors.transparent,
                       onTap: () {
                         context.go(
-                          '/pay-ment/$selectedPayment',
+                          '/payment/$selectedPayment',
                           extra: {"oldUrl": GoRouter.of(context).routerDelegate.currentConfiguration.matches.last.matchedLocation},
                         );
                       },
                       child: Container(
                         alignment: Alignment.center,
                         decoration: BoxDecoration(
-                          color: const Color(0xFF2DC275),
+                          color: (selectedPayment != "") ? const Color(0xFF2DC275) : Colors.white,
                           borderRadius: BorderRadius.circular(5),
                         ),
                         padding: const EdgeInsets.fromLTRB(20, 6, 20, 6),
                         child: Text(
                           AppLocalizations.of(context).translate("Continue"),
-                          style: const TextStyle(fontSize: 14, fontWeight: FontWeight.w500, color: Colors.white),
+                          style:
+                              TextStyle(fontSize: 16, fontWeight: FontWeight.w700, color: (selectedPayment != "") ? Colors.white : Colors.grey[600]),
                         ),
                       ),
                     ),
